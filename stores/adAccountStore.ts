@@ -4,10 +4,8 @@ import { createJSONStorage, persist } from "zustand/middleware";
 /**
  * The currently selected ad account.
  *
- * Replaces the Apple-era `adAccountStore`. Apple exposed an /acls endpoint that
- * returned every org one credential could reach; OpenAI Ads scopes each API key
- * to exactly one ad account, so the account list here is simply the user's
- * connections — one row per key they've pasted.
+ * OpenAI Ads scopes each API key to exactly one ad account, so the account list
+ * here is simply the user's connections — one row per key they've pasted.
  *
  * `adAccountId` is the value every API call routes on, and `currency`/`timezone`
  * drive money and date formatting, so both are kept resolved on the store rather

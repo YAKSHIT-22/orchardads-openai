@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { validateRules } from "@/lib/autopilot/validate";
 import { scopeDef } from "@/lib/autopilot/scopes";
 import { NextResponse } from "next/server";
@@ -17,6 +18,8 @@ function nextRun(freq: string): Date {
 
 /** List the user's strategies for an org. */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const adAccountId = new URL(req.url).searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);
   const strategies = await prisma.strategy.findMany({
@@ -29,6 +32,8 @@ export const GET = withAdsRoute(async ({ userId, req }) => {
 
 /** Create a strategy. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const b = await req.json();
   const { adAccountId, adAccountName, name, description, scope, campaignIds, lookbackDays, rules, automated, frequency, autoApply, notifyEmail } = b;
 

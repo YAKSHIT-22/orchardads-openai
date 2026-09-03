@@ -83,7 +83,7 @@ export function AuthShowcase() {
       {/* headline + feature chips */}
       <div className="relative z-10">
         <h2 className="text-2xl font-bold leading-tight tracking-tight">
-          Run Apple Search Ads<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-300">like a pro.</span>
+          Run OpenAI Ads<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-300">like a pro.</span>
         </h2>
         <p className="mt-2 text-sm text-white/70 max-w-xs">
           Create, optimize and automate campaigns — Waste Blocker, Autopilot rules and live reports in one place.

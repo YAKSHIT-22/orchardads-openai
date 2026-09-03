@@ -1,7 +1,7 @@
 /**
  * Budget projection & pacing — a real forecasting model, not just avg-vs-budget.
  *
- * Adapted from standard PPC budget-analysis practice to Apple Search Ads (which
+ * Adapted from standard PPC budget-analysis practice to this platform (which
  * bills on a daily budget; LOC accounts also have monthly budget orders). For a
  * chosen cycle (calendar month by default) it computes month-to-date spend, a
  * run-rate projection to cycle end, the pace vs target, and a pacing status with

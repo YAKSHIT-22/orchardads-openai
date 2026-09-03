@@ -55,19 +55,26 @@ export function InfoHint({
 export default InfoHint;
 
 /**
- * Canonical one-liners for Apple Search Ads metric jargon, so every page
- * explains a metric the same way. Use on the first occurrence per page:
- * <>TTR <InfoHint>{METRIC_HINTS.TTR}</InfoHint></>
+ * Canonical one-liners for OpenAI Ads metric jargon, so every page explains a
+ * metric the same way. Use on the first occurrence per page:
+ *   <>CTR <InfoHint>{METRIC_HINTS.CTR}</InfoHint></>
+ *
+ * Two of these carry a warning rather than a definition, because the honest
+ * answer is more useful than a formula: OpenAI Ads reports conversion COUNTS
+ * and no value, so revenue and ROAS are modelled from a number you supply.
  */
 export const METRIC_HINTS = {
-  TTR: "Tap-through rate — taps ÷ impressions. Apple's version of click-through rate.",
-  CPT: "Cost per tap — spend ÷ taps.",
-  CPA: "Cost per install — spend ÷ installs. Apple's only conversion is an install.",
+  CTR: "Click-through rate — clicks / impressions.",
+  CPC: "Cost per click — spend / clicks.",
+  CPA: "Cost per conversion — spend / conversions. Blank when nothing has converted yet: a campaign with no conversions has no CPA, and showing 0.00 would read as 'conversions were free'.",
   CPM: "Cost per 1,000 impressions.",
-  CR: "Conversion rate — installs ÷ taps.",
-  IMPRESSIONS: "How many times your ad was shown on the App Store.",
-  TAPS: "How many times users tapped your ad (Apple's term for clicks).",
-  INSTALLS: "App downloads attributed to your ads.",
-  SPEND: "What you paid Apple over the selected period.",
-  ROAS: "Return on ad spend — revenue attributed to ads ÷ spend.",
+  CR: "Conversion rate — conversions / clicks.",
+  IMPRESSIONS: "How many times your ad was shown inside a ChatGPT conversation.",
+  CLICKS: "How many times someone clicked through to your site.",
+  CONVERSIONS: "Click-through conversions attributed to your ads. View-through conversions are reported separately and are never added to this total — they don't feed CPA, bidding or billing.",
+  SPEND: "What you paid OpenAI over the selected period.",
+  REVENUE: "MODELLED, not reported. OpenAI Ads returns conversion counts and no value, so this is conversions x the value per conversion you configured.",
+  ROAS: "MODELLED, not reported. Modelled revenue / spend. Set a value per conversion to enable it — we won't estimate one for you.",
+  CONTEXT_HINTS: "Free-text descriptions of when your product is useful. The only targeting text this platform has — there are no keywords and no match types, and no per-hint reporting.",
+  SERVING_ISSUE: "A typed code from OpenAI explaining why something can't deliver. Read directly from the platform, not inferred.",
 } as const;

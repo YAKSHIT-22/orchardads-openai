@@ -13,15 +13,15 @@ import { toast } from "sonner";
 
 const faqs = [
   {
-    q: "Is OrchardAds an official Apple product?",
-    a: "No. OrchardAds is an independent third-party tool built on Apple's official Ads Campaign Management API v5. We are not affiliated with Apple Inc.",
+    q: "Is OrchardAds an official OpenAI product?",
+    a: "No. OrchardAds is an independent third-party tool built on OpenAI's official Advertiser API. We are not affiliated with OpenAI.",
   },
   {
-    q: "How is my Apple Ads data handled?",
-    a: "Your Apple Ads credentials are encrypted at rest and never sold or shared. Keys are never exposed to the browser.",
+    q: "How is my OpenAI Ads data handled?",
+    a: "Your API key is encrypted at rest with AES-256-GCM, used only server-side, and never sent to a browser or written to a log. Only the last four characters are ever displayed back to you.",
   },
   {
-    q: "What if I lose access to my Apple Ads account?",
+    q: "What if I lose access to my OpenAI Ads account?",
     a: "You can reconnect your account anytime from Settings — regenerate your key pair and re-enter your IDs.",
   },
   {

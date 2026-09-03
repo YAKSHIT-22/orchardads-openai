@@ -3,7 +3,7 @@
 /**
  * Report Designer — two-pane builder for report templates. Left: report
  * settings, the ordered widget outline (reorder / edit / duplicate / delete)
- * and an add-widget palette. Right: a live preview rendered from real Apple
+ * and an add-widget palette. Right: a live preview rendered from real
  * Search Ads data via /api/reports/render (manual refresh — renders are real
  * report pulls and can take a few seconds).
  */
@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -275,7 +275,7 @@ export default function Designer({
       return res.data.report as RenderedReport;
     },
     onSuccess: () => setStale(false),
-    onError: (err: any) => appleErrorToast(err, "Couldn't render the preview"),
+    onError: (err: any) => adsErrorToast(err, "Couldn't render the preview"),
   });
 
   const refreshPreview = useCallback(() => {
@@ -305,7 +305,7 @@ export default function Designer({
       qc.invalidateQueries({ queryKey: ["report-templates", adAccountId] });
       onSaved?.(template);
     },
-    onError: (err: any) => appleErrorToast(err, "Failed to save the report"),
+    onError: (err: any) => adsErrorToast(err, "Failed to save the report"),
   });
 
   /* Widget list operations. */
@@ -439,7 +439,7 @@ export default function Designer({
                     <Label className="text-xs">Subtitle</Label>
                     <Input
                       className="h-8 text-sm w-full"
-                      placeholder="Apple Search Ads performance"
+                      placeholder="OpenAI Ads performance"
                       value={cover.subtitle || ""}
                       onChange={(e) => setCoverField({ subtitle: e.target.value })}
                     />
@@ -624,7 +624,7 @@ export default function Designer({
             {renderMutation.isPending ? (
               <div className="flex flex-col items-center justify-center gap-3 py-28 text-muted-foreground">
                 <Loader2 className="w-6 h-6 animate-spin" />
-                <p className="text-sm">Pulling live Apple Search Ads data…</p>
+                <p className="text-sm">Pulling live OpenAI Ads data…</p>
                 <p className="text-xs text-muted-foreground/70">This can take a few seconds.</p>
               </div>
             ) : renderMutation.isError ? (

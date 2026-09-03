@@ -1,14 +1,6 @@
 /**
  * Report shapes for OpenAI Ads.
  *
- * The Apple-era vocabulary maps as follows:
- *   taps        -> clicks
- *   ttr         -> ctr
- *   avgCPT      -> cpcMicros
- *   localSpend  -> spendMicros
- *   installs    -> conversions
- *   avgCPI      -> cpaMicros
- *
  * Two deliberate absences, both forced by the API rather than by scope:
  *   - No keyword or search-term shapes. The OpenAI Ads API has no keywords;
  *     targeting is free-text `context_hints[]` on the ad group.

@@ -237,7 +237,7 @@ type RouteHandler = (ctx: {
  * Note the 401 -> 403 remap: an upstream credential failure must NOT surface as
  * a 401, because the client interceptor treats 401 as an expired *app* session
  * and force-redirects to /signin, destroying in-progress work. (Carried over
- * from the Apple layer, where the same bug bit.)
+ * this bug has bitten before.)
  */
 export function withAdsRoute(handler: RouteHandler) {
   return async (

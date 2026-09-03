@@ -1,8 +1,7 @@
 /**
  * Centralized OpenAI Ads API error handling.
  *
- * IMPORTANT: unlike Apple Search Ads, the OpenAI Ads API publishes **no error
- * schema at all** — the official OpenAPI spec documents only 200 responses. So
+ * IMPORTANT: the OpenAI Ads API publishes **no error schema at all** — the official OpenAPI spec documents only 200 responses. So
  * this module is deliberately defensive: it probes several plausible envelope
  * shapes, and always produces a usable error even when the body is empty, HTML,
  * or something we have never seen.

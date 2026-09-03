@@ -2,13 +2,12 @@
  * Dashboard insight computations — pure functions over data the dashboard has
  * already fetched. No network, no React.
  *
- * REBUILT FOR OPENAI ADS. The Apple version aggregated by placement (App Store
- * search results / Today tab / product pages) and mined search terms; neither
- * exists here. What replaced them:
+ * There are no ad placements and no search terms on this platform. What exists
+ * instead:
  *
- *   placements  -> `country` / `device` segments from the insights API
- *   search terms -> nothing. This API has no keywords and no search terms.
- *   daily budgets -> lifetime budgets, so pacing is a runway, not a cap.
+ *   breakdowns    -> `country` / `device` segments from the insights API
+ *   targeting     -> free-text context hints, with no per-hint reporting
+ *   budgets       -> lifetime, so pacing is a runway rather than a daily cap.
  */
 
 import type { CampaignReportRow, SegmentReportRow } from "@/types/reportsDetails";

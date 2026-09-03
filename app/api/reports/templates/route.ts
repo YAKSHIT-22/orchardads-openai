@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { validateWidgets, isValidRange } from "@/lib/reports/validate";
 import { NextResponse } from "next/server";
 
 /** List the user's report templates for an org. */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "report_designer");
+
   const adAccountId = new URL(req.url).searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);
   const templates = await prisma.reportTemplate.findMany({
@@ -17,6 +20,8 @@ export const GET = withAdsRoute(async ({ userId, req }) => {
 
 /** Create a report template. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "report_designer");
+
   const b = await req.json();
   const { adAccountId, adAccountName, name, description, cover, dateRange, widgets } = b;
   if (!adAccountId) throw new AppError("adAccountId is required", 400);

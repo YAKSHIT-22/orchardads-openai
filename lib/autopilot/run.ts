@@ -5,7 +5,7 @@
  * strategy's scope, evaluates its rules, and either returns the suggestions
  * (preview) or applies the selected ones.
  *
- * TWO THINGS CHANGED FROM THE APPLE BUILD, both for good reasons:
+ * TWO PROPERTIES WORTH CALLING OUT:
  *
  * 1. NO PER-CAMPAIGN FAN-OUT. The OpenAI Ads insights endpoints take an
  *    aggregation level inside an account-wide scope, so one call returns every

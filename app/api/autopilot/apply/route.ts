@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { applySuggestions } from "@/lib/autopilot/run";
 import type { Suggestion } from "@/lib/autopilot/types";
 import { NextResponse } from "next/server";
@@ -10,6 +11,8 @@ import { NextResponse } from "next/server";
  * value), so apply is self-contained and needs no re-evaluation.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const { adAccountId, strategyId, suggestions } = await req.json();
   if (!adAccountId) throw new AppError("adAccountId required", 400);
   if (!Array.isArray(suggestions) || suggestions.length === 0) throw new AppError("No suggestions to apply", 400);

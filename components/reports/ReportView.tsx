@@ -498,7 +498,7 @@ export function ReportPreviewOverlay({
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-32 text-zinc-300">
           <Loader2 className="w-7 h-7 animate-spin" />
-          <p className="text-sm">Rendering report with live Apple Search Ads data…</p>
+          <p className="text-sm">Rendering report with live OpenAI Ads data…</p>
           <p className="text-xs text-zinc-500">This can take a few seconds.</p>
         </div>
       ) : error ? (

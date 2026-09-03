@@ -84,7 +84,7 @@ const Page = () => {
       const res = await api.post("/onboarding/verifyotp", payload);
     },
     onSuccess: () => {
-      toast.success("Email verified! Let's connect your Apple account…");
+      toast.success("Email verified! Let's connect your OpenAI Ads account…");
       router.push("/onboarding/generateKey");
     },
     onError: (err: any) => {

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /**
@@ -7,6 +8,8 @@ import { NextResponse } from "next/server";
  * mark-all-read for an org. Owner only.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const { id, action, days, adAccountId } = await req.json();
 
   if (action === "readAll") {

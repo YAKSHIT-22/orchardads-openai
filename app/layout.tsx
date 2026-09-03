@@ -11,24 +11,24 @@ const urbanist = Urbanist({
 });
 
 export const metadata: Metadata = {
-  title: "OrchardAds — Apple Search Ads, on autopilot",
+  title: "OrchardAds — OpenAI Ads optimization",
   description:
-    "Create, manage and optimize Apple Search Ads campaigns — wasted-spend detection, keyword harvesting, automated rules and reports in one place.",
+    "Find out why your ChatGPT Ads aren't delivering, where spend is going nowhere, and fix it safely — diagnostics, recommendations and guarded automation in one place.",
   keywords:
-    "Apple Search Ads, Apple Ads, campaign management, ads optimization, keyword harvesting, negative keywords, automated rules, reporting",
+    "OpenAI Ads, ChatGPT Ads, ads optimization, campaign management, serving issues, ad review, wasted spend, budget pacing, reporting",
   applicationName: "OrchardAds",
   openGraph: {
-    title: "OrchardAds — Apple Search Ads, on autopilot",
+    title: "OrchardAds — OpenAI Ads optimization",
     description:
-      "Create, manage and optimize Apple Search Ads campaigns — wasted-spend detection, keyword harvesting, automated rules and reports in one place.",
+      "Find out why your ChatGPT Ads aren't delivering, where spend is going nowhere, and fix it safely — diagnostics, recommendations and guarded automation in one place.",
     siteName: "OrchardAds",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "OrchardAds — Apple Search Ads, on autopilot",
+    title: "OrchardAds — OpenAI Ads optimization",
     description:
-      "Create, manage and optimize Apple Search Ads campaigns with an optimization engine that acts on your numbers.",
+      "An optimization layer for OpenAI Ads that reads the platform's own diagnostics and acts only on your approval.",
   },
 };
 

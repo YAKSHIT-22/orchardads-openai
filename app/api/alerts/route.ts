@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { ensureDefaultAlerts } from "@/lib/alerts/defaults";
 import { ALERT_METRIC_KEYS } from "@/lib/alerts/metrics";
 import { NextResponse } from "next/server";
@@ -12,6 +13,8 @@ const ACTIONS = ["NOTIFY", "PAUSE"];
 
 /** List the user's alerts for an org (seeding default anomaly monitors first). */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const url = new URL(req.url);
   const adAccountId = url.searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);
@@ -28,6 +31,8 @@ export const GET = withAdsRoute(async ({ userId, req }) => {
 
 /** Create an alert. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const b = await req.json();
   const {
     adAccountId, adAccountName, name, kind, scope, campaignId, campaignName,

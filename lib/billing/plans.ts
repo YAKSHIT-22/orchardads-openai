@@ -6,7 +6,7 @@
  * recommending bigger budgets. (Reasoning in docs/business/pricing-strategy.md.)
  *
  * TRIAL POLICY — deliberate and important:
- * every new organization gets 14 days with EVERY tool unlocked at Scale-tier
+ * every new organization gets 14 days with EVERY tool unlocked at Enterprise-tier
  * limits, no card required. Not a crippled trial. The reason is the product's
  * own shape: Serving Doctor and Review Doctor produce value the minute a key is
  * pasted, before any history exists, so the fastest path to a paying customer is
@@ -20,7 +20,7 @@
  * and they would simply disconnect and never come back.
  */
 
-export type PlanId = "trial" | "starter" | "growth" | "scale" | "expired";
+export type PlanId = "trial" | "basic" | "pro" | "enterprise" | "expired";
 
 /** Every gateable capability in the product. */
 export type Feature =
@@ -99,7 +99,7 @@ export const ALWAYS_ON: Feature[] = [
   "activity_log",
 ];
 
-const STARTER_FEATURES: Feature[] = [
+const BASIC_FEATURES: Feature[] = [
   ...ALWAYS_ON,
   "recommendations",
   "apply_actions",
@@ -111,8 +111,8 @@ const STARTER_FEATURES: Feature[] = [
   "ai_analyst",
 ];
 
-const GROWTH_FEATURES: Feature[] = [
-  ...STARTER_FEATURES,
+const PRO_FEATURES: Feature[] = [
+  ...BASIC_FEATURES,
   "bid_optimizer",
   "context_hints",
   "time_performance",
@@ -124,8 +124,8 @@ const GROWTH_FEATURES: Feature[] = [
   "multi_seat",
 ];
 
-const SCALE_FEATURES: Feature[] = [
-  ...GROWTH_FEATURES,
+const ENTERPRISE_FEATURES: Feature[] = [
+  ...PRO_FEATURES,
   "autopilot",
   "shared_dashboards",
   "report_designer",
@@ -138,7 +138,7 @@ export const TRIAL_DAYS = 14;
 
 export const PLANS: Record<PlanId, Plan> = {
   /**
-   * 14 days, everything unlocked at Scale limits, no card. Deliberately not a
+   * 14 days, everything unlocked at Enterprise limits, no card. Deliberately not a
    * reduced feature set — see the module comment.
    */
   trial: {
@@ -147,7 +147,7 @@ export const PLANS: Record<PlanId, Plan> = {
     priceUsdCents: 0,
     priceInrPaise: 0,
     tagline: `${TRIAL_DAYS} days, every tool unlocked. No card required.`,
-    features: SCALE_FEATURES,
+    features: ENTERPRISE_FEATURES,
     limits: {
       adAccounts: 10,
       seats: 5,
@@ -161,13 +161,13 @@ export const PLANS: Record<PlanId, Plan> = {
     },
   },
 
-  starter: {
-    id: "starter",
-    name: "Starter",
+  basic: {
+    id: "basic",
+    name: "Basic",
     priceUsdCents: 2900,
     priceInrPaise: 149900,
     tagline: "One ad account. Find the waste, fix it safely.",
-    features: STARTER_FEATURES,
+    features: BASIC_FEATURES,
     limits: {
       adAccounts: 1,
       seats: 2,
@@ -181,13 +181,13 @@ export const PLANS: Record<PlanId, Plan> = {
     },
   },
 
-  growth: {
-    id: "growth",
-    name: "Growth",
+  pro: {
+    id: "pro",
+    name: "Pro",
     priceUsdCents: 4900,
     priceInrPaise: 299900,
     tagline: "Up to 5 ad accounts, full optimization toolkit and alerting.",
-    features: GROWTH_FEATURES,
+    features: PRO_FEATURES,
     highlight: true,
     limits: {
       adAccounts: 5,
@@ -202,13 +202,13 @@ export const PLANS: Record<PlanId, Plan> = {
     },
   },
 
-  scale: {
-    id: "scale",
-    name: "Scale",
+  enterprise: {
+    id: "enterprise",
+    name: "Enterprise",
     priceUsdCents: 9900,
     priceInrPaise: 599900,
     tagline: "Agencies and multi-brand teams. Autopilot, client sharing, API.",
-    features: SCALE_FEATURES,
+    features: ENTERPRISE_FEATURES,
     limits: {
       adAccounts: 25,
       seats: 20,
@@ -248,7 +248,7 @@ export const PLANS: Record<PlanId, Plan> = {
 };
 
 /** The three purchasable plans, in display order. */
-export const PURCHASABLE: Plan[] = [PLANS.starter, PLANS.growth, PLANS.scale];
+export const PURCHASABLE: Plan[] = [PLANS.basic, PLANS.pro, PLANS.enterprise];
 
 // ── Subscription state ──────────────────────────────────────────────────────
 

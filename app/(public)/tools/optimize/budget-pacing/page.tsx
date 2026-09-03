@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { money } from "@/lib/format";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -190,7 +190,7 @@ export default function BudgetPacingPage() {
       return projectBudgets(campaigns, spendByCampaign, cycle);
     },
     onSuccess: (r) => { setRows(r); setHasRun(true); },
-    onError: (err: any) => appleErrorToast(err, "Failed to project budgets"),
+    onError: (err: any) => adsErrorToast(err, "Failed to project budgets"),
   });
 
   // Auto-run once the org is known.

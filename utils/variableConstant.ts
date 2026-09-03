@@ -1,9 +1,8 @@
 /**
  * Shared constants for OrchardAds.
  *
- * The Apple-era dummy response fixtures that used to live here are gone: this
- * product shows real data or an honest empty state, never sample numbers that
- * could be mistaken for a customer's account.
+ * No sample fixtures live here: this product shows real data or an honest empty
+ * state, never numbers that could be mistaken for a customer's account.
  */
 
 export const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);

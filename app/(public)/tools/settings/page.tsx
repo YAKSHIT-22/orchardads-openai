@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import Link from "next/link";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { Button } from "@/components/ui/button";
@@ -48,13 +48,13 @@ export default function SettingsPage() {
       statusQuery.refetch();
     },
     onError: (err: unknown) =>
-      appleErrorToast(err, "Couldn't reach OpenAI Ads — the key may have been revoked"),
+      adsErrorToast(err, "Couldn't reach OpenAI Ads — the key may have been revoked"),
   });
 
   const disconnect = useMutation({
     mutationFn: async (connectionId: string) => api.post("/connections/delete", { connectionId }),
     onSuccess: () => { toast.success("Account disconnected"); statusQuery.refetch(); },
-    onError: (err: any) => appleErrorToast(err, "Couldn't disconnect this account"),
+    onError: (err: any) => adsErrorToast(err, "Couldn't disconnect this account"),
   });
 
   // Org names per connection (from the aggregated ACL, tagged with connectionId).
@@ -70,14 +70,14 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2"><Settings size={20} />Settings</h1>
-          <p className="text-sm text-muted-foreground">Your Apple Search Ads connection, account, and security at a glance.</p>
+          <p className="text-sm text-muted-foreground">Your OpenAI Ads connection, account, and security at a glance.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-min">
         {/* Connection health */}
         <Card className="border rounded-xl lg:col-span-2">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-1.5"><Key className="w-4 h-4" />Apple Connection</CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-1.5"><Key className="w-4 h-4" />OpenAI Ads Connection</CardTitle>
             {statusQuery.isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             ) : (
@@ -89,7 +89,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {((s?.connections as any[]) || []).length === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">No Apple account connected yet.</p>
+              <p className="text-sm text-muted-foreground py-2">No ad account connected yet.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {(s.connections as any[]).map((c, i) => {
@@ -97,7 +97,7 @@ export default function SettingsPage() {
                   return (
                     <div key={c.id} className="rounded-lg border p-3 flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium">{c.label || `Apple account ${i + 1}`}</p>
+                        <p className="text-sm font-medium">{c.label || `Ad account ${i + 1}`}</p>
                         <p className="text-xs text-muted-foreground">
                           {c.hasCredentials ? `${c.orgCount} organization${c.orgCount === 1 ? "" : "s"}` : "Setup incomplete"}
                           {c.accessTokenExpiresAt ? ` · token ${new Date(c.accessTokenExpiresAt) > new Date() ? "active" : "expired"}` : ""}

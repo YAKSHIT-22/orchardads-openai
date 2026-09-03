@@ -18,8 +18,8 @@ const sections = [
         text: "When you register for OrchardAds, we collect your name, email address, and a securely hashed password. We use this to authenticate you and communicate important service updates.",
       },
       {
-        subtitle: "Apple Ads Credentials",
-        text: "To connect your Apple Search Ads account, you provide a Client ID, Team ID, and Key ID. These credentials are encrypted at rest using industry-standard encryption. Your RSA private key is never stored on our servers — only the public key you generate is transmitted to Apple's API.",
+        subtitle: "OpenAI Ads Credentials",
+        text: "To connect your OpenAI Ads account you provide an API key that you issue yourself in OpenAI Ads Manager. It is encrypted at rest with AES-256-GCM before it is written to our database, is decrypted only in memory for the duration of a single request, and is never sent to a browser, written to a log, or included in an error message. After you submit it, only the last four characters are ever displayed. You can revoke it at any time by deleting the key in Ads Manager — our access ends immediately and there is nothing to uninstall.",
       },
       {
         subtitle: "Usage Data",
@@ -33,7 +33,7 @@ const sections = [
     content: [
       {
         subtitle: "Service Delivery",
-        text: "Your Apple Ads credentials are used solely to authenticate API requests to Apple's Campaign Management API on your behalf. We never access your Apple Ads data for any purpose other than fulfilling your requests within the OrchardAds dashboard.",
+        text: "Your OpenAI Ads API key is used solely to authenticate requests to the OpenAI Ads API on your behalf. We never use your advertising data for any purpose other than fulfilling your requests within OrchardAds, and we never use it to train models.",
       },
       {
         subtitle: "Communication",
@@ -69,11 +69,11 @@ const sections = [
     content: [
       {
         subtitle: "We Do Not Sell Your Data",
-        text: "OrchardAds does not sell, rent, or trade your personal information or Apple Ads credentials to any third party, ever.",
+        text: "OrchardAds does not sell, rent, or trade your personal information or your OpenAI Ads credentials to any third party, ever.",
       },
       {
-        subtitle: "Apple Inc.",
-        text: "API requests made on your behalf are sent directly to Apple's Campaign Management API servers. Apple's own privacy policies govern how Apple handles these requests.",
+        subtitle: "OpenAI",
+        text: "API requests made on your behalf are sent directly to OpenAI's advertising API at api.ads.openai.com. OpenAI's own privacy policies govern how OpenAI handles those requests and the data they return.",
       },
       {
         subtitle: "Service Providers",

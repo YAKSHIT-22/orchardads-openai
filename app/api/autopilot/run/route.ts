@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { previewStrategy } from "@/lib/autopilot/run";
 import { NextResponse } from "next/server";
 
@@ -10,6 +11,8 @@ import { NextResponse } from "next/server";
  * only for saved strategies.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const { adAccountId, strategyId, strategy: inline } = await req.json();
   if (!adAccountId) throw new AppError("adAccountId required", 400);
 

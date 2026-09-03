@@ -2,7 +2,7 @@
  * Branded, email-client-safe HTML templates for OrchardAds.
  *
  * All layout is table-based with inline styles so it renders consistently in
- * Gmail / Apple Mail / Outlook. One shared `emailLayout` shell wraps every
+ * every major mail client. One shared `emailLayout` shell wraps every
  * message (OTP, alerts, reports, contact) for a consistent look.
  */
 
@@ -41,7 +41,7 @@ export function emailLayout(opts: { title: string; preheader?: string; bodyHtml:
         <tr><td style="padding:8px 28px 26px 28px">${opts.bodyHtml}</td></tr>
         <tr><td style="padding:18px 28px;border-top:1px solid ${BORDER};background:#fafafa">
           <p style="margin:0;font-size:12px;color:${MUTED};line-height:1.5">
-            Sent by OrchardAds — Apple Search Ads management. You're receiving this because of your account settings.
+            Sent by OrchardAds — OpenAI Ads optimization. You're receiving this because of your account settings.
           </p>
         </td></tr>
       </table>

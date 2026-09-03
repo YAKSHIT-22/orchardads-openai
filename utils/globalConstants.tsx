@@ -51,7 +51,6 @@ export const formatServingStatus = {
    * Valid campaign placements. Each placement fixes the compatible
    * (supplySources, adChannelType, billingEvent) triple so the API never
    * rejects an incompatible combination. Source:
-   * https://developer.apple.com/documentation/apple_ads/supplysource
    * All placements bill on TAPS (CPC); only Search results uses the SEARCH
    * channel and supports keywords.
    */

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Autopilot — rule-driven bulk optimization for Apple Search Ads. Build a
+ * Autopilot — rule-driven bulk optimization for OpenAI Ads. Build a
  * strategy (rules against one scope), preview the exact changes it proposes,
  * apply them in one click, or automate the whole thing on a schedule.
  */
@@ -10,7 +10,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import type { Suggestion } from "@/lib/autopilot/types";
 import {
@@ -113,7 +113,7 @@ export default function AutopilotPage() {
       toast.success(v.enabled ? "Strategy enabled" : "Strategy paused");
       invalidate();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't update the strategy"),
+    onError: (err) => adsErrorToast(err, "Couldn't update the strategy"),
   });
 
   const deleteMutation = useMutation({
@@ -125,7 +125,7 @@ export default function AutopilotPage() {
       setToDelete(null);
       invalidate();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't delete the strategy"),
+    onError: (err) => adsErrorToast(err, "Couldn't delete the strategy"),
   });
 
   const runMutation = useMutation({
@@ -138,7 +138,7 @@ export default function AutopilotPage() {
       setView("suggestions");
       invalidate();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't run the strategy"),
+    onError: (err) => adsErrorToast(err, "Couldn't run the strategy"),
   });
 
   /* ── Navigation helpers ── */
@@ -255,7 +255,7 @@ export default function AutopilotPage() {
               <InsightBanner
                 icon={ShieldAlert}
                 tone="warning"
-                title={`${autoApplyCount} strateg${autoApplyCount === 1 ? "y" : "ies"} will auto-apply changes on Apple`}
+                title={`${autoApplyCount} strateg${autoApplyCount === 1 ? "y" : "ies"} will auto-apply changes to your live account`}
                 sub="Scheduled runs make these changes without asking. Edit a strategy's automation step to switch back to review-first."
               />
             )}
@@ -281,7 +281,7 @@ export default function AutopilotPage() {
                         </TableHead>
                         <TableHead className="px-3 py-2">Rules</TableHead>
                         <TableHead className="px-3 py-2 whitespace-nowrap">
-                          Automation <InfoHint>Manual runs only when you press Run. Auto runs on a schedule; “auto-applies” means it also makes the changes on Apple without asking — otherwise you review first.</InfoHint>
+                          Automation <InfoHint>Manual runs only when you press Run. Auto runs on a schedule; “auto-applies” means it also makes the changes in your live account without asking — otherwise you review first. It can never archive anything or pause the ad account.</InfoHint>
                         </TableHead>
                         <TableHead className="px-3 py-2">Enabled</TableHead>
                         <TableHead className="px-3 py-2 whitespace-nowrap">Last run</TableHead>
@@ -400,8 +400,8 @@ export default function AutopilotPage() {
               <InsightBanner
                 icon={Zap}
                 tone="info"
-                title="Running the strategy against your live Apple reports…"
-                sub="This hits Apple's reporting API and can take a few seconds."
+                title="Running the strategy against your live performance data…"
+                sub="This reads the OpenAI Ads insights API and can take a few seconds."
               />
             )}
           </>
@@ -414,7 +414,7 @@ export default function AutopilotPage() {
           <DialogHeader>
             <DialogTitle>Delete strategy?</DialogTitle>
             <DialogDescription>
-              “{toDelete?.name}” and its run history will be removed. Changes it already applied on Apple stay as
+              “{toDelete?.name}” and its run history will be removed. Changes it already applied to your account stay as
               they are. This can't be undone.
             </DialogDescription>
           </DialogHeader>

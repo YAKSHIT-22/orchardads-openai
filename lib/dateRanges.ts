@@ -1,7 +1,7 @@
 /**
  * Shared date-range resolver for the dashboard and the public shared view.
  *
- * Apple's report API takes an inclusive [startTime, endTime] (YYYY-MM-DD), so
+ * Ranges are inclusive [startTime, endTime] (YYYY-MM-DD), so
  * "last N days" must be [today-(N-1), today] = exactly N days (the old code used
  * [today-N, today] = N+1 days, hence "last 7 days" showed 8 days).
  *
@@ -50,7 +50,7 @@ export function rangeLabel(key: string): string {
 export type Granularity = "DAILY" | "WEEKLY" | "MONTHLY";
 
 /**
- * Apple rejects a DAILY report whose range exceeds ~90 days
+ * Very long windows are bucketed more coarsely than daily
  * ("Date range … is not valid for granularity DAILY"). Pick the finest
  * granularity that's valid for a range of `days` so charts still render over
  * long windows (e.g. "This year" → WEEKLY buckets).

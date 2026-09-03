@@ -3,9 +3,9 @@ import Redis from "ioredis";
 /**
  * Resilient Redis wrapper.
  *
- * Redis is used purely as a performance cache (Apple token cache, rate-limit
- * counters). It is NOT the source of truth — the Apple access token is also
- * persisted in the DB, so the app degrades gracefully without Redis.
+ * Redis is used purely as a cache (outbound rate-limit counters, sync locks,
+ * report results). It is NOT the source of truth, so the app degrades
+ * gracefully without it.
  *
  * - No REDIS_URL configured  → every op is a safe no-op (cache always "misses",
  *   callers fall back to the DB / direct fetch). Run Redis locally if you want

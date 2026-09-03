@@ -159,7 +159,7 @@ export function ShareDashboardDialog({
     setOpen(next);
     if (next) {
       // Fresh form each time — a share can't be edited, only created or revoked.
-      setTitle(adAccountName ? `${adAccountName} — Apple Ads performance` : "");
+      setTitle(adAccountName ? `${adAccountName} — OpenAI Ads performance` : "");
       setDescription("");
       setDateRange(DATE_RANGES.some((r) => r.value === defaultDateRange) ? defaultDateRange : "30d");
       setWidgets(WIDGET_OPTIONS.map((w) => w.key));
@@ -315,7 +315,7 @@ export function ShareDashboardDialog({
                       id="share-title"
                       value={title}
                       maxLength={120}
-                      placeholder="e.g. Q3 Apple Ads performance"
+                      placeholder="e.g. Q3 OpenAI Ads performance"
                       onChange={(e) => setTitle(e.target.value)}
                       onBlur={() => setTouched(true)}
                       aria-invalid={touched && titleMissing}

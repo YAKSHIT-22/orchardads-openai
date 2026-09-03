@@ -387,7 +387,7 @@ export default function SharedDashboardPage() {
             icon={ShieldAlert}
             tone="warn"
             title="Temporarily unavailable"
-            message="This dashboard can't be loaded right now — the owner may need to reconnect their Apple Ads account. Check back later."
+            message="This dashboard can't be loaded right now — the owner may need to reconnect their OpenAI Ads account. Check back later."
             onRetry={retry}
           />
         );

@@ -230,7 +230,7 @@ export const STARTER_PRESETS: StarterPreset[] = [
       dateRange: "30d",
       cover: {
         title: "Monthly performance report",
-        subtitle: "Apple Search Ads — account overview",
+        subtitle: "OpenAI Ads — account overview",
         accent: DEFAULT_ACCENT,
         logoText: "",
         hideBranding: false,
@@ -285,7 +285,7 @@ export const STARTER_PRESETS: StarterPreset[] = [
       dateRange: "last_month",
       cover: {
         title: "Executive summary",
-        subtitle: "Apple Search Ads performance",
+        subtitle: "OpenAI Ads performance",
         accent: DEFAULT_ACCENT,
         logoText: "",
         hideBranding: false,

@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { runScheduledReport } from "@/lib/reports/runScheduledReport";
 import { NextResponse } from "next/server";
 
 /** Toggle-enabled, delete, or send-now a report schedule the caller owns. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "scheduled_reports");
+
   const { id, action, enabled } = await req.json();
   if (!id || !action) throw new AppError("id and action required", 400);
 

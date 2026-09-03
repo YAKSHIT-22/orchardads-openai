@@ -5,7 +5,7 @@
  *   - Performance Change     (window vs the equal-length window before it)
  *   - Segment Breakdown      (country / device, from the insights segments API)
  *
- * TWO APPLE WIDGETS WERE REMOVED, not ported, because their data does not exist
+ * TWO WIDGETS WERE REMOVED because their data does not exist
  * on this platform:
  *   - PPC Investigator   drilled into search terms and keywords. No keywords.
  *   - Market Expansion   listed App Store countries the app was eligible in but

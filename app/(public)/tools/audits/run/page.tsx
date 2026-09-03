@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { auditWidget, type AuditWidgetKey } from "@/lib/audit/widgets";
 import {
@@ -247,7 +247,7 @@ function RunAuditPage() {
       // Record the run — fire and forget, a failure shouldn't disturb the view.
       api.post("/audits/touch", { id: audit!.id }).catch(() => {});
     },
-    onError: (err: any) => appleErrorToast(err, "Audit run failed"),
+    onError: (err: any) => adsErrorToast(err, "Audit run failed"),
   });
 
   // Auto-run once the saved audit arrives.

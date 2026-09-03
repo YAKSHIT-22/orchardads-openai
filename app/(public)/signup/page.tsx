@@ -108,7 +108,7 @@ const Page = () => {
                 Get started with OrchardAds
               </h1>
               <p className="text-xs xs:text-sm lg:text-base">
-                Easily manage, track, and optimize your Apple Search Ads
+                Find out why your ChatGPT Ads aren't delivering — and fix it
                 campaigns — all in one dashboard. Sign up to launch smarter ads
                 today.
               </p>

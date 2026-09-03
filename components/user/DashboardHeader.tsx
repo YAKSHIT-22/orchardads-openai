@@ -28,7 +28,7 @@ export function DashboardHeader({
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Apple Search Ads Dashboard</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">OpenAI Ads Dashboard</h1>
             <p className="text-slate-600 dark:text-slate-400 text-sm">Campaign performance analytics and insights</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">

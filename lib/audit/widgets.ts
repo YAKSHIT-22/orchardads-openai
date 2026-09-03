@@ -3,11 +3,10 @@
  * create page offers and the run page computes. Keys are stored on
  * `SavedAudit.widgets` and must stay stable.
  *
- * REBUILT FOR OPENAI ADS. The Apple catalog was keyword-centric (spend leaks
- * from search terms, dormant keywords, untapped terms). None of those exist
- * here: the API has no keywords, no search terms and no match types.
+ * The API has no keywords, no search terms and no match types, so none of the
+ * usual keyword-shaped audits apply.
  *
- * What replaced them is better, not merely different. The platform publishes
+ * What it audits instead is arguably better. The platform publishes
  * typed serving-issue codes and an enumerated ad-review reason, so the two
  * highest-value checks in this catalog — "what isn't delivering" and "what was
  * rejected and why" — are deterministic and need no history, no statistics and

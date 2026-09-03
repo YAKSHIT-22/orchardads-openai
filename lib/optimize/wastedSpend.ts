@@ -4,9 +4,8 @@
  * Pure functions — no network, no React — so the logic is easy to reason about
  * and reuse (tool page, Inspector, recommendation engine).
  *
- * REBUILT FOR OPENAI ADS. The Apple version analysed search terms, which do not
- * exist here: this API has no keywords and no search-term report. The unit of
- * analysis is therefore the entity (campaign, ad group or ad) itself.
+ * This API has no keywords and no search-term report, so the unit of analysis is
+ * the entity (campaign, ad group or ad) itself.
  *
  * The gate that matters is CLICKS, not spend. At $3-5 CPCs, a campaign with 5
  * clicks and no conversions has told you nothing; one with 40 has. Flagging the

@@ -2,7 +2,7 @@
 
 /**
  * Autopilot strategy builder — a four-step flow: scope & basics, rules,
- * live preview (a real run against Apple reports), then automation & save.
+ * live preview (a real run against your performance data), then automation & save.
  * Scope is immutable once a strategy is saved; everything else is editable.
  */
 
@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { STRATEGY_TEMPLATES } from "@/lib/autopilot/templates";
 import type { ActionType, StrategyScope, Suggestion } from "@/lib/autopilot/types";
@@ -227,7 +227,7 @@ export function StrategyBuilder({
       setPreview(data);
       if (data.length === 0) toast.info("No matches right now — the strategy is still worth saving");
     },
-    onError: (err) => appleErrorToast(err, "Couldn't preview the strategy"),
+    onError: (err) => adsErrorToast(err, "Couldn't preview the strategy"),
   });
 
   const runPreview = () => {
@@ -272,7 +272,7 @@ export function StrategyBuilder({
       toast.success(editing ? "Strategy updated" : "Strategy saved");
       onSaved();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't save the strategy"),
+    onError: (err) => adsErrorToast(err, "Couldn't save the strategy"),
   });
 
   const submit = () => {
@@ -416,7 +416,7 @@ export function StrategyBuilder({
                 <Field
                   label="Lookback (days)"
                   hint="Reporting window the conditions are checked over (1–90)."
-                  info="How many days of Apple report data each run evaluates. Longer windows are steadier; shorter ones react faster."
+                  info="How many days of performance data each run evaluates. Longer windows are steadier; shorter ones react faster."
                 >
                   <Input
                     type="number"
@@ -621,7 +621,7 @@ export function StrategyBuilder({
                       <span className="text-[11px] text-muted-foreground min-w-8 shrink-0 inline-flex items-center gap-1">
                         Then
                         <InfoHint>
-                          What happens to each matching row. Notify just records it; Pause pauses it on Apple; Set bid/budget replaces the value; Adjust bid/budget changes it by a percent (negative lowers, positive raises).
+                          What happens to each matching row. Notify just records it; Pause pauses it in your live account; Set bid/budget replaces the value; Adjust bid/budget changes it by a percent (negative lowers, positive raises).
                         </InfoHint>
                       </span>
                       <Select value={rule.actionType} onValueChange={(v) => setActionType(ri, v as ActionType)}>
@@ -716,7 +716,7 @@ export function StrategyBuilder({
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground max-w-lg">
-                  These are the exact changes your rules would make, evaluated against your live Apple reports —
+                  These are the exact changes your rules would make, evaluated against your live performance data —
                   nothing is applied unless you choose to. It runs automatically; re-run after any edits.
                 </p>
                 <Button onClick={runPreview} disabled={!adAccountId || previewMutation.isPending} className="gap-1.5 shrink-0">
@@ -727,7 +727,7 @@ export function StrategyBuilder({
               {previewMutation.isPending && (
                 <div className="rounded-xl border py-14 flex flex-col items-center gap-3 text-muted-foreground">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <p className="text-sm">Fetching Apple reports and evaluating your rules…</p>
+                  <p className="text-sm">Reading your performance data and evaluating your rules…</p>
                 </div>
               )}
               {!previewMutation.isPending && preview && (
@@ -760,7 +760,7 @@ export function StrategyBuilder({
                   <Field
                     label="Frequency"
                     className="max-w-[220px]"
-                    info="How often the scheduled run evaluates your rules against fresh Apple reports."
+                    info="How often the scheduled run evaluates your rules against fresh performance data."
                   >
                     <Select value={form.frequency} onValueChange={(v) => set("frequency", v as StrategyForm["frequency"])}>
                       <SelectTrigger className="h-8 text-sm">
@@ -796,7 +796,7 @@ export function StrategyBuilder({
                         Auto-apply changes
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5 max-w-sm">
-                        Autopilot will make these changes on Apple without asking. Off = you review first.
+                        Autopilot will apply these changes to your live account without asking. Off = you review first.
                       </p>
                     </div>
                     <Switch checked={form.autoApply} onCheckedChange={(v) => set("autoApply", v)} />

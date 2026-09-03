@@ -176,7 +176,7 @@ const Page = () => {
                 Welcome back to OrchardAds
               </h1>
               <p className="text-xs xs:text-sm lg:text-base">
-                Sign in to manage, track, and optimize your Apple Search Ads
+                Sign in to diagnose, optimize and safely apply changes to your OpenAI Ads
                 campaigns — all in one dashboard.
               </p>
             </div>

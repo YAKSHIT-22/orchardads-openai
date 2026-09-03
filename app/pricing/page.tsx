@@ -6,7 +6,7 @@ import Eyebrow from "@/components/marketing/Eyebrow";
 
 export const metadata = {
   title: "Pricing — OrchardAds",
-  description: "Simple plans for every Apple Search Ads advertiser — free during beta.",
+  description: "Plans for OpenAI Ads advertisers. 14-day trial with every tool unlocked, no card required.",
 };
 
 type Plan = {
@@ -24,82 +24,89 @@ type Plan = {
 const plans: Plan[] = [
   {
     name: "Basic",
-    tagline: "Run your Apple Search Ads",
-    price: "$5",
+    tagline: "One ad account. Find the waste, fix it safely.",
+    price: "$29",
     period: "/mo",
     features: [
-      "1 Apple Search Ads account",
-      "Dashboard & KPIs",
-      "Full campaign management — campaigns, ad groups, keywords & ads (create, edit, bulk)",
-      "App search & localized app details",
-      "Waste Blocker — manual negative keywords",
-      "Campaign, keyword, search-term & ad reports",
-      "CSV export everywhere",
-      "Budget orders & geo-targeting",
-      "Email support",
+      "1 OpenAI Ads account, 2 seats",
+      "Serving Doctor — why nothing is delivering, by root cause",
+      "Review Doctor — decode ad rejections and how to fix them",
+      "Dashboard, campaign, ad group and ad reporting",
+      "Waste Finder & Budget Pacing",
+      "Recommendations with approval, rollback and full audit trail",
+      "Ask — the AI analyst (100 analyses/mo)",
+      "100 applied changes/mo · CSV export",
     ],
-    cta: { label: "Start free", href: "/signup" },
-    note: "Free during beta",
+    cta: { label: "Start 14-day trial", href: "/signup" },
+    note: "₹1,499 + GST in India",
   },
   {
     name: "Pro",
-    tagline: "Optimize & automate",
-    price: "$10",
+    tagline: "Up to 5 ad accounts, full toolkit and alerting.",
+    price: "$49",
     period: "/mo",
     highlight: true,
     ladder: "Everything in Basic, plus:",
     features: [
-      "Multiple Apple accounts",
-      "Orchard Inspector — account audits",
-      "Waste Blocker — AI-scored negative suggestions",
-      "Keyword Harvest with AI — expansion & enrichment",
-      "Budget Pacing — month-end projection",
-      "N-Gram Analyzer & Weekday Performance",
-      "Orchard Watch — alerts, anomalies & email digests",
-      "Autopilot — rule engine, instant apply + scheduled automation",
-      "Scheduled email reports",
-      "Live Share — public read-only dashboards",
-      "All AI features",
+      "5 ad accounts, 5 seats",
+      "Bid Optimizer — ad-group max bids ranked against your median CPA",
+      "Context Hints — edit the only targeting text this platform has",
+      "Time Performance — weekday patterns",
+      "Orchard Watch — alerts, anomaly detection, optional auto-pause",
+      "Orchard Inspector — full account audits",
+      "Scheduled email reports · country & device breakdowns",
+      "500 AI analyses/mo · 400 applied changes/mo",
     ],
-    cta: { label: "Start free", href: "/signup" },
-    note: "Free during beta",
+    cta: { label: "Start 14-day trial", href: "/signup" },
+    note: "₹2,999 + GST in India",
   },
   {
     name: "Enterprise",
-    tagline: "Scale with confidence",
-    price: "Contact sales",
+    tagline: "Agencies and multi-brand teams.",
+    price: "$99",
+    period: "/mo",
     ladder: "Everything in Pro, plus:",
     features: [
-      "Unlimited Apple accounts",
-      "Team seats / multi-user",
-      "Priority support & SLA",
-      "Onboarding & strategy assistance",
-      "Custom automation limits",
+      "25 ad accounts, 20 seats",
+      "Autopilot — rule engine with guardrails and cooldowns",
+      "Live Share — read-only client dashboards on a public link",
+      "Report Designer & white-label reports",
+      "API access · priority support",
+      "2,500 AI analyses/mo · 2,000 applied changes/mo",
     ],
-    cta: { label: "Contact sales", href: "/contact" },
+    cta: { label: "Talk to us", href: "/contact" },
+    note: "₹5,999 + GST in India",
   },
 ];
 
 const faqs = [
   {
-    q: "Do I pay anything during the beta?",
-    a: "No. Every plan — including all Pro features — is free for all users during our 7-day beta. The prices shown are what plans will cost once billing goes live, and you'll get plenty of notice before that happens.",
+    q: "What happens during the 14-day trial?",
+    a: "Every tool is unlocked at Enterprise limits, with no card required. Not a reduced version — Serving Doctor and Review Doctor produce a real answer the minute you paste your API key, before any performance history exists, so there is nothing to gain by holding features back while you evaluate.",
   },
   {
-    q: "Can I switch plans later?",
-    a: "Yes. You can upgrade or downgrade at any time. When billing goes live, changes take effect immediately and are prorated for the remainder of the cycle.",
+    q: "What happens when the trial ends and I haven't subscribed?",
+    a: "Your account becomes read-only rather than locked. Dashboards, Serving Doctor, Review Doctor, reports and your activity log keep working. What stops is applying changes to your ad account and running AI analyses. We won't lock you out of your own performance data to pressure a renewal.",
   },
   {
-    q: "What counts as an \"Apple account\"?",
-    a: "One connected Apple Search Ads API credential set (Client ID, Team ID, Key ID). All organizations under that account are included — they appear in the in-app org switcher at no extra cost.",
+    q: "What counts as an ad account?",
+    a: "One OpenAI Ads API key. Each key is scoped by OpenAI to exactly one ad account, so if you manage several you'll connect one key each. Pricing is per connected account and never a percentage of your ad spend — a tool that exists to cut waste shouldn't earn more when you spend more.",
+  },
+  {
+    q: "How do I connect my OpenAI Ads account?",
+    a: "Sign in at ads.openai.com, open Settings, and issue an API key. Paste it into onboarding and we verify it, read back which ad account it belongs to, and encrypt it with AES-256-GCM before storing it. The key never reaches a browser and never appears in a log. Delete it in Ads Manager any time to cut off access — there's nothing to uninstall.",
+  },
+  {
+    q: "Can you show ROAS?",
+    a: "Not from OpenAI Ads, because the API doesn't report revenue — conversions come back as counts only. If you tell us what a conversion is worth to you, we'll model revenue and ROAS from that and label them as modelled. We won't estimate them and present them as reported figures.",
+  },
+  {
+    q: "Will it change my campaigns on its own?",
+    a: "Only if you set up Autopilot and explicitly enable auto-apply, and even then it runs inside guardrails you configure: maximum change percentage, daily action caps, cooldowns and minimum conversion volume. Archiving and pausing the ad account are never automated at all — archiving is irreversible and pausing the account would stop your entire business. Every change is logged with its before and after state and can be rolled back.",
   },
   {
     q: "Can I cancel anytime?",
-    a: "Yes. Cancel whenever you like — you keep access until the end of your billing period, and you can request full deletion of your data at any time.",
-  },
-  {
-    q: "How do I connect my Apple Search Ads account?",
-    a: "Sign up, generate a key pair in-app, and add the public key to your Apple Search Ads account. Apple doesn't use user-level OAuth — you stay in control of your own API credentials, which we store encrypted.",
+    a: "Yes. You keep access until the end of your billing period, then the account falls back to read-only. You can request full deletion of your data at any time.",
   },
 ];
 
@@ -154,7 +161,7 @@ export default function PricingPage() {
                   {plan.period && <span className="text-muted-foreground mb-1">{plan.period}</span>}
                 </div>
                 {plan.note ? (
-                  <p className="mt-1 text-xs font-medium text-green-600 dark:text-green-400">{plan.note} — $0 for the 7-day beta</p>
+                  <p className="mt-1 text-xs font-medium text-green-600 dark:text-green-400">{plan.note}</p>
                 ) : (
                   <p className="mt-1 text-xs text-muted-foreground">Custom pricing for teams & agencies</p>
                 )}
@@ -205,7 +212,7 @@ export default function PricingPage() {
           ))}
         </div>
         <div className="mt-12 flex flex-col items-center gap-4 text-center">
-          <p className="text-muted-foreground">Ready to get more from your Apple Search Ads budget?</p>
+          <p className="text-muted-foreground">Ready to see where your ChatGPT Ads budget is actually going?</p>
           <Link href="/signup" className="inline-flex h-11 items-center justify-center rounded-full bg-primary text-primary-foreground px-7 text-sm font-medium hover:bg-primary/90 transition-colors gap-2 shadow-lg shadow-primary/20">
             Start free <ArrowRight className="w-4 h-4" />
           </Link>

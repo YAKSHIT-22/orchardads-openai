@@ -9,7 +9,7 @@ import Eyebrow from "@/components/marketing/Eyebrow";
 
 export const metadata = {
   title: "About — OrchardAds",
-  description: "Why we built OrchardAds — a complete platform for managing and optimizing Apple Search Ads.",
+  description: "Why we built OrchardAds — an optimization layer for OpenAI Ads.",
 };
 
 const tools = [
@@ -37,7 +37,7 @@ const values = [
   {
     icon: <Code2 className="w-5 h-5" />,
     title: "API-native",
-    desc: "Built directly on Apple's Campaign Management API v5 — no third-party wrappers, no abstraction layers, full fidelity.",
+    desc: "Built directly on OpenAI's Advertiser API — no wrappers, no abstraction layers. Where the API can't do something, we say so instead of faking it.",
   },
   {
     icon: <Globe className="w-5 h-5" />,
@@ -73,9 +73,9 @@ export default function AboutPage() {
             We built the dashboard we <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent">always wanted.</span>
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-            OrchardAds was born out of frustration. Running Apple Search Ads programmatically meant wrangling raw API calls,
+            OrchardAds was born out of frustration. Running OpenAI Ads programmatically meant wrangling raw API calls,
             minting client secrets by hand, and stitching reports together in spreadsheets. So we built the clean,
-            production-ready platform we wished existed — the full power of Apple&apos;s Campaign Management API v5, without the pain.
+            production-ready platform we wished existed — the full surface of OpenAI&apos;s Advertiser API, without the guesswork.
           </p>
         </div>
       </section>
@@ -85,12 +85,12 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
           <div>
             <Eyebrow>Our mission</Eyebrow>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-[-0.02em]">Apple Ads for everyone — not just enterprises.</h2>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-[-0.02em]">OpenAI Ads for everyone — not just enterprises.</h2>
           </div>
           <p className="text-muted-foreground text-lg leading-relaxed lg:pt-8">
-            We want indie studios, agencies and solo developers to run Apple Search Ads like a team with a dedicated
+            We want indie studios, agencies and solo developers to run OpenAI Ads like a team with a dedicated
             engineer — democratizing programmatic ad management with a transparent, secure and genuinely intuitive
-            platform wired straight into Apple&apos;s official API.
+            platform wired straight into OpenAI&apos;s official Advertiser API.
           </p>
         </div>
       </section>

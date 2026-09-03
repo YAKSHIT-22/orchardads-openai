@@ -1,7 +1,7 @@
 "use client";
 
-import { Bell, Key, Loader2, LogOut, User, Settings, AlertTriangle } from "lucide-react";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { Bell, Key, Loader2, Lock, LogOut, User, Settings, AlertTriangle } from "lucide-react";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, ReactNode, ChangeEvent } from "react";
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { adAccountStore, type ConnectionSummary } from "@/stores/adAccountStore";
 import { menuItems } from "@/utils/constant";
+import { useBilling } from "@/lib/billing/useEntitlements";
+import { TrialBanner } from "@/components/billing/TrialBanner";
 import { AlertsTray } from "@/components/alerts/AlertsTray";
 import {
   Select,
@@ -55,12 +57,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     },
   });
 
+  const billing = useBilling();
+
+  /**
+   * Plan gating for the nav.
+   *
+   * Un-entitled tools are shown LOCKED rather than hidden. Hiding them makes the
+   * product look smaller than it is and gives the user no way to discover what
+   * upgrading buys; a lock with a destination does both jobs. While billing is
+   * loading everything is treated as available, so paying users never see a
+   * flash of padlocks on each page load.
+   */
+  const has = (feature?: string) => {
+    if (!feature) return true;
+    if (billing.isLoading || !billing.data) return true;
+    return billing.data.features.includes(feature as never);
+  };
+
   const visibleMenuItems = menuItems;
 
   /**
    * Load the user's connected ad accounts.
    *
-   * There is no Apple-style /acls endpoint here: each OpenAI Ads API key is
+   * There is no account-list endpoint to call: each OpenAI Ads API key is
    * scoped to exactly one ad account, so the account list IS the list of keys
    * the user has pasted. It is fetched rather than cached so a key that has
    * since been revoked shows as broken instead of appearing healthy.
@@ -158,11 +177,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         (child) => pathname === child.href
       );
 
+      // A parent is locked only when EVERY child is locked — otherwise the
+      // group still leads somewhere useful.
+      const groupLocked =
+        !!item.children?.length && item.children.every((c) => !has(c.feature));
+
       if (item.children && item.children.length > 0) {
         return (
           <button
             key={item.label}
-            onClick={() => handlePrimaryClick(item.label)}
+            onClick={() => (groupLocked ? router.push("/tools/billing") : handlePrimaryClick(item.label))}
             className={cn(
               "flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors",
               (activeMenu === item.label && toolVisible) || isActiveSubmenu
@@ -170,27 +194,30 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 : "text-muted-foreground"
             )}
           >
-            {item.icon}
+            {groupLocked ? <Lock size={18} /> : item.icon}
             <span className="text-xs text-center leading-tight">{item.label}</span>
           </button>
         );
       } else {
+        const locked = !has(item.feature);
         return (
           <Link
             key={item.label}
-            href={item.href!}
+            href={locked ? "/tools/billing" : item.href!}
+            title={locked ? `${item.label} isn't on your plan` : undefined}
             onClick={() => {
               setActiveMenu(null);
               setToolVisible(false);
             }}
             className={cn(
               "flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors",
+              locked && "opacity-50",
               pathname === item.href
                 ? "bg-primary/10 text-primary font-semibold"
                 : "text-muted-foreground"
             )}
           >
-            {item.icon}
+            {locked ? <Lock size={18} /> : item.icon}
             <span className="text-xs text-center leading-tight">{item.label}</span>
           </Link>
         );
@@ -218,21 +245,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hidden flex flex-col gap-1 pb-2">
       {menuItems
         .find((i) => i.label === activeMenu)
-        ?.children?.map((tool) => (
-          <Link
-            key={tool.href}
-            href={tool.href}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-sm",
-              pathname === tool.href
-                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary pl-[10px]"
-                : "text-muted-foreground"
-            )}
-          >
-            {tool.icon}
-            {tool.label}
-          </Link>
-        ))}
+        ?.children?.map((tool) => {
+          const locked = !has(tool.feature);
+          return (
+            <Link
+              key={tool.href}
+              href={locked ? "/tools/billing" : tool.href!}
+              title={locked ? `${tool.label} isn't on your plan` : undefined}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-sm",
+                locked && "opacity-50",
+                pathname === tool.href
+                  ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary pl-[10px]"
+                  : "text-muted-foreground"
+              )}
+            >
+              {locked ? <Lock size={16} /> : tool.icon}
+              <span className="flex-1">{tool.label}</span>
+              {locked && <span className="text-[10px] uppercase tracking-wide">Upgrade</span>}
+            </Link>
+          );
+        })}
     </nav>
   </div>
 </aside>
@@ -329,6 +362,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </DropdownMenu>
           </div>
         </header>
+
+        <TrialBanner />
 
         <AlertsTray open={alertsTrayOpen} onOpenChange={setAlertsTrayOpen} />
 

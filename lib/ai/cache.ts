@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rateLimit";
 
 /**
  * Caching + throttling for the AI endpoints. AI calls are expensive (an
- * Anthropic request plus a multi-call Apple fan-out to gather app context), so:
+ * Anthropic request plus several upstream calls to gather account context), so:
  *  - identical inputs are served from cache (app metadata + report-derived
  *    inputs change slowly), and
  *  - each user is rate-limited to bound cost/abuse.

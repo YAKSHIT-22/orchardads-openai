@@ -24,8 +24,8 @@ import type { GeoLocationResult } from "@/types/geoDetails";
 /**
  * Create a campaign.
  *
- * This form is much smaller than its Apple predecessor, and that is the API
- * being honest rather than the form being unfinished. An OpenAI Ads campaign is:
+ * This form is deliberately small, and that is the API being honest rather than
+ * the form being unfinished. An OpenAI Ads campaign is:
  * a name, a status, a lifetime budget, an optional schedule, a bidding type, and
  * optional location/audience targeting. There is no app, no channel, no supply
  * source, no keyword list, and no per-country budget.

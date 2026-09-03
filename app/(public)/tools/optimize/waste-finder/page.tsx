@@ -32,9 +32,8 @@ import type { ReportData } from "@/types/reportsDetails";
 /**
  * Waste Finder.
  *
- * Replaces the Apple build's "Waste Blocker", which found search terms to add as
- * negative keywords. Neither search terms nor negative keywords exist here, so
- * the unit of analysis is the campaign itself: money spent with nothing to show.
+ * There are no search terms or negative keywords on this platform, so the unit of
+ * analysis is the campaign itself: money spent with nothing to show for it.
  *
  * THE MOST IMPORTANT THING ON THIS PAGE IS THE WARNING, not the table. A
  * campaign with a broken conversion pixel looks EXACTLY like one that genuinely

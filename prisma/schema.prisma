@@ -1,17 +1,21 @@
 // OrchardAds — AI optimization layer for OpenAI Ads (ChatGPT Ads).
 //
-// Ported from the Apple Search Ads schema: the platform-agnostic half (users,
-// 2FA, alerts, reports, strategies, shared dashboards, audits) is unchanged in
-// shape; the platform half is rebuilt around OpenAI Ads concepts.
+// Notes that explain otherwise-surprising choices below:
 //
-// Vocabulary map from the old schema:
-//   AppleConnection  -> OpenAiAdsConnection   (bearer API key, one per ad account)
-//   orgId            -> adAccountId           ("adacct_...")
-//   CachedKeyword    -> deleted               (the OpenAI Ads API has no keywords)
-//   installs/taps    -> conversions/clicks
+//   - An OpenAiAdsConnection is ONE bearer API key, and OpenAI scopes each key
+//     to exactly one ad account. A customer with several accounts has several
+//     connections; there is no parent-org concept to model.
 //
-// Money: the OpenAI Ads API speaks *micros* (millionths of a currency unit).
-// We store micros as BigInt everywhere and convert only at the display edge.
+//   - There is no keyword table, and there never will be: the OpenAI Ads API
+//     has no keywords. Ad-group targeting is free-text `contextHints`.
+//
+//   - Money is MICROS (millionths of a currency unit), stored as BigInt and
+//     converted only at the display edge. Converting earlier loses cents on
+//     real budgets, and these numbers get spent.
+//
+//   - MetricFact joins two sources with different grains: delivery insights
+//     (hourly-capable) and the conversions endpoint (daily only). The stored
+//     grain is therefore DAILY, and CPA exists only at that grain.
 
 generator client {
   provider = "prisma-client-js"
@@ -70,9 +74,9 @@ model User {
 
 enum PlanId {
   trial
-  starter
-  growth
-  scale
+  basic
+  pro
+  enterprise
   expired
 }
 

@@ -3,7 +3,7 @@
  * series) plus an alert config, return the entities that fire. Shared by the
  * manual "Run now" path and the scheduled cron so behaviour is identical.
  *
- * Rewritten from the Apple version around two OpenAI Ads realities:
+ * Two OpenAI Ads realities shape this:
  *
  *  - There is no KEYWORD scope. Targeting is free-text `context_hints` on the ad
  *    group, so the scopes are ACCOUNT / CAMPAIGN / ADGROUP / AD.
@@ -301,7 +301,7 @@ export function evaluateAnomaly(
 /**
  * SERVING alert: an entity that can no longer deliver.
  *
- * This has no Apple analogue and needs no statistics — the platform hands us
+ * This needs no statistics — the platform hands us
  * typed codes. It is the highest-signal alert in the product because a blocked
  * campaign produces nothing at all, silently.
  */

@@ -10,7 +10,7 @@ import Eyebrow from "@/components/marketing/Eyebrow";
 export const metadata = {
   title: "Autopilot — OrchardAds",
   description:
-    "Put your Apple Search Ads on Autopilot. Build rules that find wasted spend, re-bid winners and pause losers — preview every change, apply in one click, or automate it.",
+    "Put your OpenAI Ads on Autopilot. Build rules that find wasted spend, re-bid winners and pause losers — preview every change, apply in one click, or automate it inside guardrails you set.",
 };
 
 const steps = [
@@ -24,7 +24,7 @@ const steps = [
     step: "02",
     icon: Eye,
     title: "Preview changes",
-    desc: "Autopilot runs your rules against live Apple reports and shows every proposed change side by side with the metrics that triggered it. Nothing happens yet.",
+    desc: "Autopilot runs your rules against live performance data and shows every proposed change beside the metrics that triggered it. Nothing happens yet.",
   },
   {
     step: "03",
@@ -38,12 +38,12 @@ const features = [
   {
     icon: Layers,
     title: "Five scopes, one builder",
-    desc: "Campaigns, ad groups, ads, keywords and countries — every level of your account, with actions matched to what Apple's API allows at each one.",
+    desc: "Campaigns, ad groups, ads and countries — every level the API exposes, with actions matched to what it actually allows at each one.",
   },
   {
     icon: MousePointerClick,
     title: "Instant apply",
-    desc: "Select the suggestions you agree with and push them to Apple in one click — bids, budgets, pause/resume and geo exclusions.",
+    desc: "Select the suggestions you agree with and apply them in one click — bids, budgets, pause/resume and country exclusions. Archiving is never offered, because it can't be undone.",
   },
   {
     icon: CalendarClock,
@@ -100,7 +100,7 @@ export default function AutopilotLandingPage() {
           </div>
 
           <h1 className="text-[2.7rem] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.03em] leading-[1.02] max-w-4xl">
-            Put your Apple Search Ads
+            Put your OpenAI Ads
             <br className="hidden sm:block" />{" "}
             on{" "}
             <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent pr-1">
@@ -266,14 +266,14 @@ export default function AutopilotLandingPage() {
       <section className="w-full py-24 text-center">
         <div className="max-w-2xl mx-auto px-6 sm:px-10 flex flex-col items-center gap-5">
           <Eyebrow>Ready when you are</Eyebrow>
-          <h2 className="text-4xl sm:text-5xl font-semibold tracking-[-0.03em]">Your rules. Apple's scale. Zero busywork.</h2>
+          <h2 className="text-4xl sm:text-5xl font-semibold tracking-[-0.03em]">Your rules. Your guardrails. Zero busywork.</h2>
           <p className="text-muted-foreground max-w-lg">
-            Connect your Apple Search Ads account, load a template, and see what Autopilot would change in your
+            Connect your OpenAI Ads account, load a template, and see what Autopilot would change in your
             account today — free during the beta.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/signup" className="group inline-flex h-12 items-center justify-center rounded-full bg-primary text-primary-foreground px-8 text-base font-medium hover:bg-primary/90 transition-colors gap-2 shadow-lg shadow-primary/20">
-              Connect Apple Ads Account <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              Connect OpenAI Ads Account <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link href="/tools/autopilot" className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-card/50 px-7 text-base font-medium text-foreground hover:bg-accent transition-colors gap-2">
               Open Autopilot <ArrowRight className="w-4 h-4" />

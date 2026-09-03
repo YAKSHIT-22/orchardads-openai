@@ -2,7 +2,7 @@
  * Report Designer widget catalog — the blocks a user can drop into a report
  * template. Client-safe (no server imports): the designer UI reads this to
  * offer widgets and configure them; the server render (lib/reports/render.ts)
- * computes each widget's data from Apple reports. Widget instances are stored
+ * computes each widget's data from the report layer. Widget instances are stored
  * on ReportTemplate.widgets as `{ id, type, title, config }`.
  */
 

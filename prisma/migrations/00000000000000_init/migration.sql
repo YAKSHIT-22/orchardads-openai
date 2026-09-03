@@ -8,7 +8,7 @@ CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 CREATE TYPE "VerifiedStatus" AS ENUM ('UNVERIFIED', 'VERIFIED', 'BLOCKED', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "PlanId" AS ENUM ('trial', 'starter', 'growth', 'scale', 'expired');
+CREATE TYPE "PlanId" AS ENUM ('trial', 'basic', 'pro', 'enterprise', 'expired');
 
 -- CreateEnum
 CREATE TYPE "SubscriptionStatus" AS ENUM ('trialing', 'active', 'past_due', 'canceled', 'expired');

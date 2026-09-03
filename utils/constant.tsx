@@ -1,3 +1,4 @@
+import type { Feature } from "@/lib/billing/plans";
 import {
   Activity,
   BarChart2,
@@ -24,17 +25,28 @@ import {
 /**
  * Primary navigation.
  *
- * Ported from the Apple Search Ads build, with the keyword-shaped tools removed:
- * the OpenAI Ads API has no keywords, no search terms and no match types, so
- * N-Gram Analyzer and Keyword Harvest have no analogue and are gone rather than
- * left as dead pages. What replaces them is what this platform actually exposes:
+ * The OpenAI Ads API has no keywords, no search terms and no match types, so
+ * there are no keyword-shaped tools here. What this platform exposes instead is
  * typed serving-issue codes and ad-review reasons, which is why Serving Doctor
  * and Review Doctor sit near the top.
  *
  * See docs/reference/handyads-port-map.md for the full mapping.
+ *
+ * Each item carries the `feature` it requires. The nav reads this to lock items
+ * the current plan doesn't include — from the SAME plan definition the server
+ * enforces with, so a visible item and a 402 can't disagree. Items with no
+ * `feature` are always available, including after a trial expires.
  */
 
-export const menuItems = [
+export type MenuItem = {
+  label: string;
+  icon: React.ReactNode;
+  href?: string;
+  feature?: Feature;
+  children?: MenuItem[];
+};
+
+export const menuItems: MenuItem[] = [
   {
     label: "Dashboard",
     icon: <LayoutDashboard size={18} />,
@@ -44,16 +56,19 @@ export const menuItems = [
     label: "Serving Doctor",
     icon: <Stethoscope size={18} />,
     href: "/tools/serving-health",
+    feature: "serving_doctor",
   },
   {
     label: "Review Doctor",
     icon: <ClipboardCheck size={18} />,
     href: "/tools/review-health",
+    feature: "review_doctor",
   },
   {
     label: "Ask",
     icon: <MessageSquare size={18} />,
     href: "/tools/ask",
+    feature: "ai_analyst",
   },
   {
     label: "Campaigns",
@@ -74,11 +89,13 @@ export const menuItems = [
     label: "Reports",
     icon: <BarChart2 size={18} />,
     href: "/tools/reports",
+    feature: "reports_view",
   },
   {
     label: "Inspector",
     icon: <ClipboardCheck size={18} />,
     href: "/tools/audits",
+    feature: "inspector",
   },
   {
     label: "Optimize",
@@ -88,26 +105,31 @@ export const menuItems = [
         label: "Waste Finder",
         icon: <ShieldMinus size={16} />,
         href: "/tools/optimize/waste-finder",
+        feature: "waste_finder",
       },
       {
         label: "Bid Optimizer",
         icon: <TrendingUp size={16} />,
         href: "/tools/optimize/bid-optimizer",
+        feature: "bid_optimizer",
       },
       {
         label: "Budget Pacing",
         icon: <Gauge size={16} />,
         href: "/tools/optimize/budget-pacing",
+        feature: "budget_pacing",
       },
       {
         label: "Context Hints",
         icon: <Sparkles size={16} />,
         href: "/tools/optimize/context-hints",
+        feature: "context_hints",
       },
       {
         label: "Time Performance",
         icon: <CalendarDays size={16} />,
         href: "/tools/optimize/time-performance",
+        feature: "time_performance",
       },
     ],
   },
@@ -115,31 +137,37 @@ export const menuItems = [
     label: "Orchard Watch",
     icon: <BellRing size={18} />,
     href: "/tools/alerts",
+    feature: "alerts",
   },
   {
     label: "Autopilot",
     icon: <Plane size={18} />,
     href: "/tools/autopilot",
+    feature: "autopilot",
   },
   {
     label: "Spend Limits",
     icon: <DollarSign size={18} />,
     href: "/tools/spend-limits",
+    feature: "spend_limits",
   },
   {
     label: "Locations",
     icon: <MapPin size={18} />,
     href: "/tools/locations",
+    feature: "locations",
   },
   {
     label: "Live Share",
     icon: <Share2 size={18} />,
     href: "/tools/shared-dashboards",
+    feature: "shared_dashboards",
   },
   {
     label: "Activity",
     icon: <ScrollText size={18} />,
     href: "/tools/activity",
+    feature: "activity_log",
   },
 ];
 

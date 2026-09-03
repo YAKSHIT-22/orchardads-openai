@@ -2,6 +2,8 @@ import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
+import { AppError, errorResponseBody } from "@/lib/openai/errors";
 import { SHARE_DATE_RANGES } from "@/lib/dateRanges";
 
 const DATE_RANGES: string[] = SHARE_DATE_RANGES;
@@ -17,6 +19,7 @@ const WIDGET_KEYS = [
 export async function GET() {
   try {
     const userId = await getUserId();
+    await requireFeature(userId, "shared_dashboards");
     const shares = await prisma.sharedDashboard.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -27,7 +30,13 @@ export async function GET() {
       },
     });
     return NextResponse.json({ shares }, { status: 200 });
-  } catch {
+  } catch (err) {
+    // Preserve the real status: a 402 plan gate must NOT become a 401,
+    // which the client interceptor treats as an expired session and
+    // force-redirects to /signin.
+    if (err instanceof AppError) {
+      return NextResponse.json(errorResponseBody(err), { status: err.status });
+    }
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 }
@@ -36,6 +45,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const userId = await getUserId();
+    await requireFeature(userId, "shared_dashboards");
     const body = await req.json();
     const { adAccountId, adAccountName, title, description, dateRange, widgets, expiresInDays } = body || {};
 

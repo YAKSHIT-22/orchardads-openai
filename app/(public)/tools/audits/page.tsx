@@ -90,7 +90,7 @@ export default function AuditsPage() {
           <ToolHeader
             icon={ClipboardCheck}
             title="Orchard Inspector"
-            description="Automated account audits for Apple Search Ads — save a set of checks, run it any time, and get a health score with downloadable findings for the last 45 days."
+            description="Automated account audits for OpenAI Ads — save a set of checks, run them any time, and get a health score with downloadable findings for the last 45 days. Serving blocks and rejected ads are checked from OpenAI's own diagnostics, so they work even on a brand-new account."
           >
             {newAuditButton}
           </ToolHeader>

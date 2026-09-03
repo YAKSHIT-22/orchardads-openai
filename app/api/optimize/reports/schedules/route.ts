@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 const TYPES = ["campaign", "adgroup", "keyword", "searchterm", "ad"];
@@ -7,6 +8,8 @@ const FREQS = ["DAILY", "WEEKLY", "MONTHLY"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "scheduled_reports");
+
   const adAccountId = new URL(req.url).searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);
   const schedules = await prisma.reportSchedule.findMany({
@@ -18,6 +21,8 @@ export const GET = withAdsRoute(async ({ userId, req }) => {
 });
 
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "scheduled_reports");
+
   const { adAccountId, name, reportType, templateId, campaignId, adGroupId, lookbackDays, frequency, recipients } = await req.json();
   if (!adAccountId || !name || !recipients) throw new AppError("Missing required fields", 400);
   if (!FREQS.includes(frequency || "WEEKLY")) throw new AppError("Invalid frequency", 400);

@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /** Toggle, delete, or edit an alert. Owner only. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const { id, action, enabled, patch } = await req.json();
   if (!id) throw new AppError("id required", 400);
 

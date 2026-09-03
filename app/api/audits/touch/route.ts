@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
+import { AppError, errorResponseBody } from "@/lib/openai/errors";
 
 /** Record that an audit was run (updates lastRunAt). Owner only. */
 export async function POST(req: Request) {
   try {
     const userId = await getUserId();
+    await requireFeature(userId, "inspector");
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 

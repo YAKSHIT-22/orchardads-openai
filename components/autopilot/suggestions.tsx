@@ -3,7 +3,7 @@
 /**
  * Autopilot suggestions table — the preview a run produces. Select the
  * proposed changes you want, review the confirm dialog, and apply them to
- * Apple in one shot. NOTIFY (report-only) rows are informational and can be
+ * the ad account in one shot. NOTIFY (report-only) rows are informational and can be
  * hidden but never applied.
  */
 
@@ -12,7 +12,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { money } from "@/lib/format";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import type { Suggestion } from "@/lib/autopilot/types";
 import {
   ACTION_BADGE, ACTION_SHORT, SUGGESTION_METRICS, metricDef, scopeDef, fmtMetricValue,
@@ -147,11 +147,11 @@ export function SuggestionsPanel({
           description: (data.results || []).find((r) => !r.ok)?.error,
         });
       } else {
-        toast.success(`${data.applied} change${data.applied === 1 ? "" : "s"} applied on Apple`);
+        toast.success(`${data.applied} change${data.applied === 1 ? "" : "s"} applied`);
       }
       onApplied?.();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't apply the changes"),
+    onError: (err) => adsErrorToast(err, "Couldn't apply the changes"),
   });
 
   return (
@@ -323,9 +323,9 @@ export function SuggestionsPanel({
       <Dialog open={confirmOpen} onOpenChange={(open) => !applyMutation.isPending && setConfirmOpen(open)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Apply {toApply.length} change{toApply.length === 1 ? "" : "s"} on Apple?</DialogTitle>
+            <DialogTitle>Apply {toApply.length} change{toApply.length === 1 ? "" : "s"}?</DialogTitle>
             <DialogDescription>
-              These changes are made directly on your Apple Search Ads account. Bids and budgets can be changed
+              These changes are made directly on your live OpenAI Ads account. Bids and budgets can be changed
               back, but performance history won't be.
             </DialogDescription>
           </DialogHeader>

@@ -34,10 +34,12 @@ import { InfoHint, METRIC_HINTS } from "@/components/ui/info-hint";
 /** Plain-language explainers for the calculated (jargon) metrics. */
 const KPI_EXPLAIN: Record<string, string> = {
   cpa: METRIC_HINTS.CPA,
-  cpt: METRIC_HINTS.CPT,
+  cpc: METRIC_HINTS.CPC,
   cpm: METRIC_HINTS.CPM,
   cvr: METRIC_HINTS.CR,
-  ctr: METRIC_HINTS.TTR,
+  ctr: METRIC_HINTS.CTR,
+  revenue: METRIC_HINTS.REVENUE,
+  roas: METRIC_HINTS.ROAS,
 };
 
 /** Sensible default subset — everything else stays one toggle away. */
@@ -69,7 +71,7 @@ function metricValue(key: string, t: ReportTotals): number | null {
       return t.impressions;
     case "cpa":
       return ratio(t.spendMicros, t.conversions);
-    case "cpt":
+    case "cpc":
       return ratio(t.spendMicros, t.clicks);
     case "cpm": {
       const r = ratio(t.spendMicros, t.impressions);

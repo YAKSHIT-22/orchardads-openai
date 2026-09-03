@@ -1,7 +1,7 @@
 {
-    "name": "Apple Ads Manager | Your Dashboard for Performance",
+    "name": "OrchardAds | OpenAI Ads optimization",
     "short_name": "OrchardAds",
-    "description": "Manage and monitor your Apple Ads campaigns with an intuitive dashboard built using Next.js, Tailwind CSS, and TypeScript.",
+    "description": "Diagnose, optimize and safely apply changes to your OpenAI Ads campaigns.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

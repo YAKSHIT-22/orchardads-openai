@@ -21,7 +21,7 @@ const optimizeTools = [
 
 const steps = [
   { step: "01", title: "Create your account", desc: "Sign up with email verification in under two minutes." },
-  { step: "02", title: "Connect Apple Ads", desc: "Generate a key pair in-app and add the public key to your Apple account." },
+  { step: "02", title: "Connect OpenAI Ads", desc: "Issue an API key in Ads Manager and paste it in. We encrypt it before it touches our database." },
   { step: "03", title: "Enter your credentials", desc: "Drop in your Client, Team and Key IDs — we handle the rest, encrypted." },
   { step: "04", title: "Optimize & grow", desc: "Launch campaigns, cut wasted spend, and automate the busywork." },
 ];
@@ -52,7 +52,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-[2.7rem] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.03em] leading-[1.02] max-w-4xl">
-            Apple Search Ads,
+            OpenAI Ads,
             <br className="hidden sm:block" />{" "}
             <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent pr-1">finally</span>{" "}
             on autopilot.
@@ -272,9 +272,9 @@ export default function Home() {
         <div className="max-w-2xl mx-auto px-6 sm:px-10 flex flex-col items-center gap-5">
           <Eyebrow>Ready when you are</Eyebrow>
           <h2 className="text-4xl sm:text-5xl font-semibold tracking-[-0.03em]">Stop guessing. Start optimizing.</h2>
-          <p className="text-muted-foreground max-w-lg">Connect your Apple Search Ads account and put the busywork on autopilot — free through the beta.</p>
+          <p className="text-muted-foreground max-w-lg">Connect your OpenAI Ads account and see what isn't delivering, in about a minute. 14-day trial, every tool unlocked, no card.</p>
           <Link href="/signup" className="group inline-flex h-12 items-center justify-center rounded-full bg-primary text-primary-foreground px-8 text-base font-medium hover:bg-primary/90 transition-colors gap-2 shadow-lg shadow-primary/20">
-            Connect Apple Ads Account <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            Connect OpenAI Ads Account <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
       </section>

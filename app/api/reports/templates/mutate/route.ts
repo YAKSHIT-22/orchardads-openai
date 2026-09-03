@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { validateWidgets, isValidRange } from "@/lib/reports/validate";
 import { NextResponse } from "next/server";
 
 /** Edit or delete a report template. Owner only. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "report_designer");
+
   const { id, action, patch } = await req.json();
   if (!id) throw new AppError("id required", 400);
 

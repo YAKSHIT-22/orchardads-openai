@@ -31,8 +31,7 @@ import type { AdGroupReportRow, ReportData } from "@/types/reportsDetails";
 /**
  * Bid Optimizer.
  *
- * COMPLETELY DIFFERENT LEVER FROM THE APPLE VERSION. That one re-bid keywords.
- * The OpenAI Ads API has no keywords: the only bid in the system is
+ * THE ONLY BID IN THIS SYSTEM is
  * `bidding_config.max_bid_micros` on an AD GROUP. So this tool compares ad
  * groups on CPA and proposes bid changes to the ones that are out of line.
  *

@@ -7,8 +7,7 @@ import { AdsApiError } from "@/lib/openai/errors";
 /**
  * Re-check every connected ad account.
  *
- * Replaces the Apple build's "refresh access token" action. There is no token to
- * refresh here — an OpenAI Ads API key is static and never expires. What CAN
+ * There is no token to refresh here — an OpenAI Ads API key is static and never expires. What CAN
  * change is whether it still works: the advertiser may have deleted it in Ads
  * Manager, and OpenAI sends us no revocation signal. A `401` on this call is the
  * only way we ever find out, which is why this action exists at all.

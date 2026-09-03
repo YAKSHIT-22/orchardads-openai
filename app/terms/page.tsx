@@ -19,17 +19,17 @@ const sections: Section[] = [
   {
     id: "acceptance-of-terms",
     title: "1. Acceptance of Terms",
-    text: "By accessing or using OrchardAds (\"the Service\"), you agree to be bound by these Terms & Conditions (\"Terms\"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all users, including those who register for an account and connect their Apple Ads credentials.",
+    text: "By accessing or using OrchardAds (\"the Service\"), you agree to be bound by these Terms & Conditions (\"Terms\"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all users, including those who register for an account and connect their OpenAI Ads credentials.",
   },
   {
     id: "description-of-service",
     title: "2. Description of Service",
-    text: "OrchardAds is an independent third-party web application that provides a dashboard interface for managing Apple Search Ads campaigns via Apple's official Ads Campaign Management API v5. OrchardAds is not affiliated with, endorsed by, sponsored by, or in any way officially connected with Apple Inc. The Apple Ads name, logo, and related marks are trademarks of Apple Inc.",
+    text: "OrchardAds is an independent third-party web application for managing and optimizing OpenAI Ads campaigns via OpenAI's official Advertiser API. OrchardAds is not affiliated with, endorsed by, sponsored by, or in any way officially connected with OpenAI. The OpenAI and ChatGPT names, logos and related marks are trademarks of OpenAI.",
   },
   {
     id: "eligibility",
     title: "3. Eligibility",
-    text: "You must be at least 18 years of age and have a valid Apple Search Ads account to use OrchardAds. By using the Service, you represent and warrant that you meet these requirements and that all information you provide is accurate and complete.",
+    text: "You must be at least 18 years of age and have a valid OpenAI Ads account to use OrchardAds. By using the Service, you represent and warrant that you meet these requirements and that all information you provide is accurate and complete.",
   },
   {
     id: "account-registration-security",
@@ -43,14 +43,15 @@ const sections: Section[] = [
     ],
   },
   {
-    id: "apple-ads-credentials-api-usage",
-    title: "5. Apple Ads Credentials & API Usage",
+    id: "openai-ads-credentials-api-usage",
+    title: "5. OpenAI Ads Credentials & API Usage",
     items: [
-      "You are solely responsible for ensuring you have the necessary authorization from your Apple Search Ads account to use OrchardAds.",
-      "By providing your Client ID, Team ID, and Key ID, you authorize OrchardAds to make API requests to Apple's Campaign Management API on your behalf.",
+      "You are solely responsible for ensuring you are authorized to manage the OpenAI Ads account whose API key you connect.",
+      "By providing an OpenAI Ads API key, you authorize OrchardAds to make API requests on your behalf, including reads and — where you approve them — writes that change budgets, bids and the running state of your campaigns.",
+      "OrchardAds will never archive an entity or pause your ad account automatically. Archiving is irreversible, and pausing the account would stop everything you are running; both require an explicit action from you.",
       "OrchardAds encrypts and securely stores your credentials but cannot guarantee absolute security against all possible threats.",
-      "You must comply with Apple's Developer Program License Agreement and Apple Ads Campaign Management API Terms of Use at all times.",
-      "OrchardAds is not responsible for any actions taken by Apple Inc. against your account, including suspension or termination.",
+      "You must comply with OpenAI's advertising policies and API terms at all times.",
+      "OrchardAds is not responsible for any action OpenAI takes against your ad account, including review rejection, suspension or termination.",
     ],
   },
   {
@@ -59,12 +60,12 @@ const sections: Section[] = [
     text: "You agree not to use OrchardAds to:",
     items: [
       "Violate any applicable laws or regulations.",
-      "Violate Apple's API Terms of Use or Developer Program License Agreement.",
+      "Violate OpenAI's advertising policies or API terms.",
       "Attempt to reverse-engineer, scrape, or extract data from the Service beyond normal use.",
       "Upload malicious code, scripts, or files.",
       "Impersonate any person or entity.",
       "Interfere with or disrupt the integrity or performance of the Service.",
-      "Create fraudulent Apple Ads campaigns or engage in ad fraud.",
+      "Create fraudulent campaigns or engage in ad fraud.",
     ],
   },
   {
@@ -78,8 +79,8 @@ const sections: Section[] = [
     items: [
       "OrchardAds is provided \"as is\" and \"as available\" without warranties of any kind, express or implied.",
       "We do not warrant that the Service will be uninterrupted, error-free, or free of harmful components.",
-      "OrchardAds is not responsible for the accuracy, completeness, or timeliness of data returned by Apple's API.",
-      "Campaign performance, spend, and results are entirely subject to Apple's systems and algorithms. OrchardAds makes no guarantees regarding advertising outcomes.",
+      "OrchardAds is not responsible for the accuracy, completeness or timeliness of data returned by the OpenAI Ads API. Revenue and ROAS figures, where shown, are modelled from a value per conversion that you supply — OpenAI Ads does not report revenue.",
+      "Campaign performance, spend and results are entirely subject to OpenAI's systems and auction. OrchardAds makes no guarantee about advertising outcomes, and recommendations are suggestions you remain responsible for approving.",
     ],
   },
   {

@@ -14,7 +14,7 @@ interface CurrencySelectProps {
 }
 
 /**
- * Currency is dictated by the selected Apple organization — Apple rejects any
+ * Currency is dictated by the connected ad account — the API rejects any
  * other currency when creating campaigns, ad groups, keywords or budget orders.
  * So this control is display-only: it shows the org currency and keeps the
  * bound form value synced to it. No manual selection.
@@ -38,7 +38,7 @@ export default function CurrencySelect({ value, onChange, error }: CurrencySelec
           "flex gap-1.5 items-center w-full px-3 py-2 border rounded bg-muted/40 cursor-not-allowed select-none",
           error ? "border-red-500" : "border-gray-300"
         )}
-        title={name ? `${name} — set by your Apple account` : "Set by your Apple account"}
+        title={name ? `${name} — set by your ad account` : "Set by your ad account"}
       >
         <span className="text-sm font-semibold text-zinc-700">{display || "—"}</span>
         <Lock className="w-3 h-3 text-zinc-400 ml-auto shrink-0" />

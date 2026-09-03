@@ -28,8 +28,8 @@ import type { AggregationLevel, InsightSegment, TimeRange } from "./types";
  * The report layer: one place that turns "show me the last 30 days by campaign"
  * into the two upstream calls, the daily join, and a typed ReportData.
  *
- * Caching is two-tier (Redis -> Postgres), carried over from the Apple build.
- * It matters more here: the OpenAI Ads API enforces rate limits per ad account
+ * Caching is two-tier (Redis -> Postgres), and it matters: the OpenAI Ads API
+ * enforces rate limits per ad account
  * AND per IP, so an uncached dashboard would spend the customer's own budget of
  * requests every time someone reloads a page.
  */

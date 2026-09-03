@@ -35,8 +35,7 @@ import type { ReportData } from "@/types/reportsDetails";
 /**
  * Time Performance.
  *
- * Replaces the Apple build's "Weekday Performance". Same idea, one crucial
- * difference the page states rather than hides:
+ * One thing this page states rather than hides:
  *
  *   OPENAI ADS HAS NO DAYPARTING. There is no schedule, no hour-of-day bid
  *   adjustment, no day-of-week modifier. You can SEE when performance is better;

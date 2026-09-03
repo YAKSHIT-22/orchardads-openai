@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /** Run history for a strategy (most recent first). */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const url = new URL(req.url);
   const strategyId = url.searchParams.get("strategyId");
   if (!strategyId) throw new AppError("strategyId required", 400);

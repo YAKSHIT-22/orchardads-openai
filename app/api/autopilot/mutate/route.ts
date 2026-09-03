@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { validateRules } from "@/lib/autopilot/validate";
 import { NextResponse } from "next/server";
 
@@ -16,6 +17,8 @@ function nextRun(freq: string): Date {
 
 /** Toggle, delete, or edit a strategy. Owner only. */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "autopilot");
+
   const { id, action, enabled, patch } = await req.json();
   if (!id) throw new AppError("id required", 400);
 

@@ -143,7 +143,7 @@ export default function Dashboard() {
     [reportData.campaigns],
   );
 
-  // The org's ACL currency is the authoritative account currency (Apple returns
+  // The connected ad account's currency is authoritative (the API returns
   // all amounts in it). Prefer it; fall back to the report's currency only if
   // the ACL hasn't loaded yet, then USD as a last resort.
   const currency =
@@ -190,7 +190,7 @@ export default function Dashboard() {
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
             <p className="text-lg font-semibold mb-2">Failed to load dashboard data</p>
             <p className="text-sm text-muted-foreground mb-6">
-              {(error as any)?.response?.data?.error || "Check your Apple Ads credentials and try again."}
+              {(error as any)?.response?.data?.error || "Check your OpenAI Ads connection in Settings and try again."}
             </p>
             <Button onClick={() => refetch()} className="gap-2">
               <RefreshCw className="w-4 h-4" />

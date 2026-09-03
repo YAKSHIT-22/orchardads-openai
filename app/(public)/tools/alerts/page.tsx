@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Orchard Watch — unified alerts for Apple Search Ads. Define metric
+ * Orchard Watch — unified alerts for OpenAI Ads. Define metric
  * thresholds, budget-pacing watches and anomaly monitors; run them on demand
  * (the cron runs them on schedule) and review everything that triggered.
  */
@@ -11,7 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { money } from "@/lib/format";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { ALERT_METRICS, metricDef, type AlertMetricKey } from "@/lib/alerts/metrics";
 import {
@@ -333,7 +333,7 @@ export default function OrchardWatchPage() {
       setForm(defaultsFor("METRIC"));
       qc.invalidateQueries({ queryKey: ["orchard-alerts"] });
     },
-    onError: (err) => appleErrorToast(err, "Couldn't save the alert"),
+    onError: (err) => adsErrorToast(err, "Couldn't save the alert"),
   });
 
   const toggleMutation = useMutation({
@@ -344,7 +344,7 @@ export default function OrchardWatchPage() {
       toast.success(v.enabled ? "Alert enabled" : "Alert paused");
       qc.invalidateQueries({ queryKey: ["orchard-alerts"] });
     },
-    onError: (err) => appleErrorToast(err, "Couldn't update the alert"),
+    onError: (err) => adsErrorToast(err, "Couldn't update the alert"),
   });
 
   const deleteMutation = useMutation({
@@ -356,7 +356,7 @@ export default function OrchardWatchPage() {
       setToDelete(null);
       qc.invalidateQueries({ queryKey: ["orchard-alerts"] });
     },
-    onError: (err) => appleErrorToast(err, "Couldn't delete the alert"),
+    onError: (err) => adsErrorToast(err, "Couldn't delete the alert"),
   });
 
   type EvalResult = {
@@ -390,7 +390,7 @@ export default function OrchardWatchPage() {
       return (res.data?.results || []) as EvalResult[];
     },
     onSuccess: summarizeRun,
-    onError: (err) => appleErrorToast(err, "Couldn't run the alerts"),
+    onError: (err) => adsErrorToast(err, "Couldn't run the alerts"),
   });
 
   const runOneMutation = useMutation({
@@ -399,7 +399,7 @@ export default function OrchardWatchPage() {
       return (res.data?.results || []) as EvalResult[];
     },
     onSuccess: summarizeRun,
-    onError: (err) => appleErrorToast(err, "Couldn't run the alert"),
+    onError: (err) => adsErrorToast(err, "Couldn't run the alert"),
   });
 
   /* ── Event mutations ── */
@@ -414,7 +414,7 @@ export default function OrchardWatchPage() {
       else if (v.action === "dismiss") toast.success("Event dismissed");
       invalidateEvents();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't update the event"),
+    onError: (err) => adsErrorToast(err, "Couldn't update the event"),
   });
 
   /* ── Form helpers ── */
@@ -952,7 +952,7 @@ export default function OrchardWatchPage() {
                       <Field
                         label="Action"
                         hint={accountScope ? "Account-level alerts can't auto-pause" : "Auto-pause pauses each breaching entity"}
-                        info="Notify only records the event (and emails you if enabled). Auto-pause additionally pauses the breaching campaign, ad group or keyword on Apple — automatically, without asking first."
+                        info="Notify records the event and emails you if enabled. Auto-pause additionally pauses the breaching campaign, ad group or ad in your live account, without asking first. It can never pause the ad account itself or archive anything."
                       >
                         <Select
                           value={form.action}

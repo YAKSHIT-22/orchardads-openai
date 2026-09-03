@@ -2,8 +2,7 @@
  * Scope + operator + action catalog for Autopilot.
  *
  * Mirrored (shape only) in the UI so the rule builder can only offer what the
- * OpenAI Ads API actually supports. Two scopes from the Apple build are gone and
- * are not coming back:
+ * OpenAI Ads API actually supports. Two scopes are deliberately absent:
  *
  *  - KEYWORD: this API has no keywords. Ad-group targeting is free-text
  *    `context_hints[]`, which has no per-hint metrics, so there is nothing to

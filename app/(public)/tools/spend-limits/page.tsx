@@ -28,10 +28,8 @@ import {
 /**
  * Spend Limits — account-level spending caps for a date window.
  *
- * Replaces the Apple build's Budget Orders. The concept is genuinely different
- * and the difference matters: a budget order was a commercial artifact (an
- * invoice reference against a line of credit). A spend limit window is a HARD
- * CAP on what the entire ad account can spend between two dates.
+ * A spend limit window is a HARD CAP on what the entire ad account can spend
+ * between two dates.
  *
  * That makes it the single highest-blast-radius control in this product. Every
  * campaign in the account stops when the window is exhausted, so:

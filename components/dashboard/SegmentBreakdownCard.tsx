@@ -12,9 +12,8 @@ import { WidgetCard, WidgetEmpty, WidgetSkeleton, WidgetError } from "./bits";
 /**
  * Segment breakdown — country or device.
  *
- * Replaces the Apple build's "top placements" widget. There are no placements
- * on this platform (no App Store search results / Today tab / product pages);
- * the only breakdown the insights API offers is `segments[]`, and it accepts
+ * There are no ad placements on this platform. The only breakdown the insights
+ * API offers is `segments[]`, and it accepts
  * exactly ONE value per request. That constraint is why this is a tabbed widget
  * that refetches on switch rather than a single table with three columns — a
  * country-by-device cross-tab is not something the API can return.

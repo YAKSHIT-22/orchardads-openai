@@ -28,8 +28,8 @@ import type { AdReportRow, ReportData } from "@/types/reportsDetails";
 /**
  * Review Doctor — "why was my ad rejected, and how do I fix it?"
  *
- * This tool has no equivalent in the Apple build and is one of the two reasons
- * this product can be useful on the day an account is connected. The platform
+ * This is one of the two reasons this product is useful on the day an account is
+ * connected. The platform
  * publishes `review_status` plus an ENUMERATED `review.reason`, and that enum is
  * dominated by landing-page and crawler failures — blocked bots, robots.txt,
  * 403s, login walls — not subjective policy calls. Those are fixable in an

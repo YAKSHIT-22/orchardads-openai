@@ -38,9 +38,7 @@ import type { ReportData } from "@/types/reportsDetails";
 /**
  * Serving Doctor — "why isn't this delivering?"
  *
- * Rebuilt entirely. The Apple version decoded `servingStateReasons`, a loosely
- * documented string list, and fanned out one ad-group request per campaign.
- * Here the platform publishes a typed `serving_issues` enum on every entity, and
+ * The platform publishes a typed `serving_issues` enum on every entity, and
  * the list endpoints return it inline via `include[]=serving_issues` — so this
  * is a complete, deterministic fault tree with no inference and no extra calls.
  *

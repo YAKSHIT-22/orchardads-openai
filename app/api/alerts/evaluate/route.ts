@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { runAlertsForOrg } from "@/lib/alerts/run";
 import { NextResponse } from "next/server";
 
@@ -8,6 +9,8 @@ import { NextResponse } from "next/server";
  * as AlertEvents and sends email for notifyEmail alerts — same path as the cron.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const { adAccountId, alertId } = await req.json();
   if (!adAccountId) throw new AppError("adAccountId required", 400);
 

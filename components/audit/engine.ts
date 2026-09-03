@@ -4,11 +4,9 @@
  *
  * Window is FIXED at the last 45 days.
  *
- * REBUILT FOR OPENAI ADS. The Apple engine audited keywords, search terms and
- * negatives; none of those exist in this API. What it audits instead is what the
- * platform actually publishes — and two of these checks are strictly better than
- * anything the Apple version could do, because the platform hands us typed
- * codes rather than making us infer intent from metrics:
+ * There are no keywords, search terms or negatives on this platform, so the
+ * audit is built from what it actually publishes. Two of these checks need no
+ * inference at all, because the platform hands us typed codes:
  *
  *   servingBlocks   — entities that CANNOT deliver, by root cause
  *   reviewFailures  — rejected ads, grouped by an enumerated reason

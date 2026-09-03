@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,7 +107,7 @@ export default function Schedules({
       qc.invalidateQueries({ queryKey: ["report-schedules", adAccountId] });
       qc.invalidateQueries({ queryKey: ["report-templates", adAccountId] });
     },
-    onError: (err: any) => appleErrorToast(err, "Failed to create schedule"),
+    onError: (err: any) => adsErrorToast(err, "Failed to create schedule"),
   });
 
   const mutate = useMutation({
@@ -121,7 +121,7 @@ export default function Schedules({
       qc.invalidateQueries({ queryKey: ["report-templates", adAccountId] });
     },
     onError: (err: any) => {
-      appleErrorToast(err, "Action failed");
+      adsErrorToast(err, "Action failed");
       setSendingId("");
       setToDelete(null);
     },

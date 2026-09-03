@@ -38,6 +38,3 @@ export function adsErrorToast(err: unknown, fallback = "Something went wrong") {
     ...(capabilityGated ? { duration: 12_000 } : {}),
   });
 }
-
-/** Kept under the old name so ported call sites read naturally. */
-export const appleErrorToast = adsErrorToast;

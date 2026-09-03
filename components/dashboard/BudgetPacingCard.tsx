@@ -6,8 +6,8 @@
  * Rebuilt around LIFETIME budgets, which is what OpenAI Ads campaigns actually
  * carry. That changes the question the widget answers:
  *
- *   Apple (daily budget)   -> "am I capped today?" — a utilisation gauge.
- *   OpenAI Ads (lifetime)  -> "when does this campaign go dark?" — a countdown.
+ *   A daily budget asks "am I capped today?" — a utilisation gauge.
+ *   A LIFETIME budget asks "when does this campaign go dark?" — a countdown.
  *
  * A lifetime budget stops delivery entirely when it is consumed and does not
  * reset, so the meter shows budget CONSUMED and the label shows days of runway.

@@ -53,14 +53,14 @@ export default function Page() {
 
         <Separator/>
 
-        {/* Apple accounts & security */}
+        {/* Ad accounts & security */}
         <Card className="py-2">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2"><KeyRound className="w-4 h-4" />Apple Accounts &amp; Security</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2"><KeyRound className="w-4 h-4" />Ad Accounts &amp; Security</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <ProfileField
-              label="Connected Apple accounts"
+              label="Connected ad accounts"
               value={
                 <span className="inline-flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-muted-foreground" />

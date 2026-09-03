@@ -1,6 +1,6 @@
 /**
  * Chart metric registry — one definition per plottable dashboard metric over
- * the daily campaign series. Native Apple metrics are summed; derived
+ * the daily campaign series. Raw counters are summed; derived
  * metrics (CPA, CPT, CPM, CVR, TTR) are recomputed per day / per range from
  * the raw fields so range aggregates stay correct (never averaged averages).
  *

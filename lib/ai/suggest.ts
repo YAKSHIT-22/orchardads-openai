@@ -3,9 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 /**
  * AI suggestion engine for OpenAI Ads campaign setup.
  *
- * Rebuilt from the Apple version, which suggested keywords and negative
- * keywords. This API has neither. What an advertiser actually needs help with
- * here is different and narrower:
+ * This API has no keywords and no negative keywords. What an advertiser actually
+ * needs help with here is narrower:
  *
  *   context_hints  — free-text descriptions of when the product is useful.
  *                    They are the ONLY targeting text on this platform, so

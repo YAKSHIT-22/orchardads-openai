@@ -67,7 +67,8 @@ export function AdGroupFormFields({ control, register, watch, setValue, errors, 
       setValue("hasCpaGoal", false);
       setValue("cpaGoal", undefined);
     }
-    // Apple currently bills every supply source per tap (CPC); CPM is legacy.
+    // Billing event must match the parent campaign: impression for CPM campaigns,
+    // click for both click and conversion campaigns.
     if (watch("pricingModel") !== "CPC") setValue("pricingModel", "CPC");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allowSearchMatch, allowCpaGoal]);
@@ -107,7 +108,7 @@ export function AdGroupFormFields({ control, register, watch, setValue, errors, 
             <Label className="flex items-center gap-1">
               Pricing Model
               <InfoHint>
-                Apple currently bills per tap (CPC). CPA goal is only available
+                Billing follows the campaign's bidding type. A CPA goal is only available
                 on placements that support it.
               </InfoHint>
             </Label>
@@ -120,7 +121,7 @@ export function AdGroupFormFields({ control, register, watch, setValue, errors, 
             <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2.5">
               <div className="min-w-0">
                 <p className="text-sm font-medium leading-none">Auto Keywords</p>
-                <p className="text-xs text-muted-foreground mt-1">Let Apple suggest keywords (Search Match)</p>
+                <p className="text-xs text-muted-foreground mt-1">Free-text hints describing when your product is useful</p>
               </div>
               <Controller
                 control={control}
@@ -165,7 +166,7 @@ export function AdGroupFormFields({ control, register, watch, setValue, errors, 
                 <Label className="text-sm font-normal flex items-center gap-1">
                   Set CPA Goal?
                   <InfoHint>
-                    Apple currently bills per tap (CPC). CPA goal is only
+                    Billing follows the campaign's bidding type. A CPA goal is only
                     available on placements that support it.
                   </InfoHint>
                 </Label>

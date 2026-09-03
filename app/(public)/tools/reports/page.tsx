@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +102,7 @@ export default function ReportsPage() {
   const previewMutation = useMutation({
     mutationFn: async (templateId: string) =>
       (await api.post("/reports/render", { adAccountId, adAccountName, templateId })).data.report as RenderedReport,
-    onError: (err: any) => appleErrorToast(err, "Couldn't render the report"),
+    onError: (err: any) => adsErrorToast(err, "Couldn't render the report"),
   });
 
   const openPreview = (t: ReportTemplateRow) => {
@@ -126,7 +126,7 @@ export default function ReportsPage() {
       toast.success("Report duplicated");
       qc.invalidateQueries({ queryKey: ["report-templates", adAccountId] });
     },
-    onError: (err: any) => appleErrorToast(err, "Failed to duplicate the report"),
+    onError: (err: any) => adsErrorToast(err, "Failed to duplicate the report"),
   });
 
   const deleteMutation = useMutation({
@@ -137,7 +137,7 @@ export default function ReportsPage() {
       qc.invalidateQueries({ queryKey: ["report-templates", adAccountId] });
       qc.invalidateQueries({ queryKey: ["report-schedules", adAccountId] });
     },
-    onError: (err: any) => appleErrorToast(err, "Failed to delete the report"),
+    onError: (err: any) => adsErrorToast(err, "Failed to delete the report"),
   });
 
   /* ── Render ──────────────────────────────────────────────────────────── */
@@ -188,7 +188,7 @@ export default function ReportsPage() {
                   <Building2 className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <p className="font-medium text-foreground/70">No organization selected</p>
-                <p className="text-sm text-muted-foreground">Connect your Apple Ads account to design reports.</p>
+                <p className="text-sm text-muted-foreground">Connect your OpenAI Ads account to design reports.</p>
               </div>
             </CardContent>
           </Card>

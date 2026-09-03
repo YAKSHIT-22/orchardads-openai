@@ -1,18 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
+import { AppError, errorResponseBody } from "@/lib/openai/errors";
 import { type AuditWidgetKey, AUDIT_WIDGET_KEYS } from "@/lib/audit/widgets";
 
 /** List the user's saved audits. */
 export async function GET() {
   try {
     const userId = await getUserId();
+    await requireFeature(userId, "inspector");
     const audits = await prisma.savedAudit.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ audits }, { status: 200 });
-  } catch {
+  } catch (err) {
+    // Preserve the real status: a 402 plan gate must NOT become a 401,
+    // which the client interceptor treats as an expired session and
+    // force-redirects to /signin.
+    if (err instanceof AppError) {
+      return NextResponse.json(errorResponseBody(err), { status: err.status });
+    }
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 }
@@ -21,6 +30,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const userId = await getUserId();
+    await requireFeature(userId, "inspector");
     const { adAccountId, adAccountName, name, description, widgets } = await req.json();
 
     if (!adAccountId) return NextResponse.json({ error: "adAccountId is required" }, { status: 400 });

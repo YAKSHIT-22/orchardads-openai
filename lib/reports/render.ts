@@ -5,8 +5,7 @@
  * a JSON payload the designer/preview renders as charts, and the email/PDF path
  * turns into HTML. Shared by the preview route and scheduled delivery.
  *
- * REBUILT ON THE NEW REPORT LAYER. The Apple version fanned out one report call
- * per campaign for ad groups, ads, keywords and search terms. Here:
+ * Built on the report layer, which matters for one reason:
  *
  *  - The insights endpoints take an aggregation level inside an account-wide
  *    scope, so every entity level is ONE call. That matters: rate limits are

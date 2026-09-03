@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   const alerts = await prisma.alert.findMany({ where: { enabled: true } });
 
-  // Group by user+org so each group shares its Apple token + report cache.
+  // Group by user + ad account so each group shares one credential and report cache.
   const groups = new Map<string, { userId: string; adAccountId: string; alerts: typeof alerts }>();
   for (const a of alerts) {
     const key = `${a.userId}:${a.adAccountId}`;

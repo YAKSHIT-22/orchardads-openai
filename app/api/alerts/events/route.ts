@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /**
@@ -8,6 +9,8 @@ import { NextResponse } from "next/server";
  * elapsed are treated as active again.
  */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const url = new URL(req.url);
   const adAccountId = url.searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);

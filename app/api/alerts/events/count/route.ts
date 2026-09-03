@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /**
@@ -7,6 +8,8 @@ import { NextResponse } from "next/server";
  * SNOOZED events whose snooze has already elapsed. Scoped to the selected org.
  */
 export const GET = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "alerts");
+
   const adAccountId = new URL(req.url).searchParams.get("adAccountId");
   if (!adAccountId) throw new AppError("adAccountId required", 400);
 

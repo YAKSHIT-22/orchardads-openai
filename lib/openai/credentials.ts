@@ -86,9 +86,8 @@ export function providerFor(connection: OpenAiAdsConnection): CredentialProvider
  *  - the connection that owns the target ad account, or
  *  - the user's only connection (single-account users).
  *
- * Ported from the Apple layer's `resolveConnection`; Apple's `orgId` becomes
- * `adAccountId`, and the mapping is exact rather than cached, because each
- * OpenAI Ads key is scoped to exactly one ad account.
+ * The mapping is exact rather than cached, because each OpenAI Ads API key is
+ * scoped to exactly one ad account.
  */
 export async function resolveConnection(
   userId: string,

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { appleErrorToast } from "@/lib/openai/errorToast";
+import { adsErrorToast } from "@/lib/openai/errorToast";
 import { adAccountStore } from "@/stores/adAccountStore";
 import {
   type AlertEvent, SEVERITY_META, KIND_META, SCOPE_LABEL,
@@ -63,7 +63,7 @@ export function AlertsTray({
       else if (v.action === "dismiss") toast.success("Event dismissed");
       invalidate();
     },
-    onError: (err) => appleErrorToast(err, "Couldn't update the event"),
+    onError: (err) => adsErrorToast(err, "Couldn't update the event"),
   });
 
   const unreadHere = events.filter((e) => e.status === "NEW").length;
