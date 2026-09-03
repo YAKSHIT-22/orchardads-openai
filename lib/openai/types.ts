@@ -425,7 +425,21 @@ export type UploadedFile = { file_id: string; [key: string]: unknown };
 export type GeoLookupResult = {
   id: string;
   name: string;
-  type: "country" | "region" | "dma" | (string & {});
-  country_code?: string;
-  region_code?: string;
+  /** Free-form in the spec (country / region / city / postal_code / ...). */
+  type: string;
+  canonical_name: string;
+  country_code: string;
+  region_code: string | null;
+  parent_id: string | null;
+  parent_country: string | null;
+};
+
+/**
+ * `/geo_lookup/search` is the one read endpoint that does NOT use the standard
+ * `{ object, data }` list envelope — it returns its own shape.
+ */
+export type GeoLookupSearchResponse = {
+  query: string;
+  count: number;
+  results: GeoLookupResult[];
 };

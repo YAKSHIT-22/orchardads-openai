@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Seeded "always-on" anomaly monitors created for every org the first time its
- * Orchard Watch is opened. They watch account-wide spend and installs for
+ * Orchard Watch is opened. They watch account-wide spend and conversions for
  * statistical spikes/drops. Users can disable or delete them like any alert.
  */
 const DEFAULTS = [

@@ -8,7 +8,7 @@ import { metricDef } from "@/lib/alerts/metrics";
 import { money } from "@/lib/format";
 
 export type AlertKind = "METRIC" | "BUDGET" | "ANOMALY";
-export type AlertScope = "ACCOUNT" | "CAMPAIGN" | "ADGROUP" | "KEYWORD";
+export type AlertScope = "ACCOUNT" | "CAMPAIGN" | "ADGROUP" | "AD";
 export type AlertComparator = "ABOVE" | "BELOW" | "CHANGE_UP" | "CHANGE_DOWN";
 export type AlertSeverity = "INFO" | "WARNING" | "CRITICAL";
 export type AlertAction = "NOTIFY" | "PAUSE";
@@ -91,7 +91,7 @@ export const SCOPE_LABEL: Record<AlertScope, string> = {
   ACCOUNT: "Account",
   CAMPAIGN: "Campaign",
   ADGROUP: "Ad group",
-  KEYWORD: "Keyword",
+  AD: "Ad",
 };
 
 /** "just now" / "5m ago" / "3h ago" / "2d ago" / "Mar 4". */

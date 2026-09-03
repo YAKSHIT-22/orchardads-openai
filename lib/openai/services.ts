@@ -14,6 +14,7 @@ import type {
   CreateCampaignBody,
   EntityStatus,
   GeoLookupResult,
+  GeoLookupSearchResponse,
   InsightRow,
   ListEnvelope,
   SpendLimitWindow,
@@ -291,7 +292,7 @@ export const ConversionService = {
 
 export const GeoService = {
   search: (ctx: Ctx, q: string, limit = 25) =>
-    adsFetch<ListEnvelope<GeoLookupResult>>(ctx.userId, "/geo_lookup/search", { ...ctx, query: { q, limit } }),
+    adsFetch<GeoLookupSearchResponse>(ctx.userId, "/geo_lookup/search", { ...ctx, query: { q, limit } }),
 };
 
 // ── Insights (delivery) ─────────────────────────────────────────────────────

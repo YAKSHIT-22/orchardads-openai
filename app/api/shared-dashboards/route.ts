@@ -12,7 +12,7 @@ const DATE_RANGES: string[] = SHARE_DATE_RANGES;
 // excluded from public shares.
 const WIDGET_KEYS = [
   "trend", "comparison", "topCampaigns", "topPlacements", "budgetPacing",
-  "projectedSpend", "performanceChange", "impressionShare",
+  "projectedSpend", "performanceChange",
 ];
 
 /** List the current user's shared dashboards. */

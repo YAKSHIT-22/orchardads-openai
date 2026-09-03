@@ -4,7 +4,7 @@
  * Shared types + helpers for the Autopilot tool UI.
  *
  * Value units: money & count condition values are stored as entered; rate
- * metrics (TTR, conversion rate) are stored as fractions server-side, so the
+ * metrics (CTR, conversion rate) are stored as fractions server-side, so the
  * UI shows/accepts percents and converts on the way in/out (mirrors alerts).
  * ADJUST_* action amounts are plain percents, SET_* amounts are currency.
  */
@@ -220,7 +220,7 @@ export function actionPhrase(action: Rule["action"], currency: string): string {
   return clamps.length ? `${base} (${clamps.join(", ")})` : base;
 }
 
-/** Full sentence for an API-unit rule: "If CPA > $8 AND taps ≥ 10 → lower bid 20%". */
+/** Full sentence for an API-unit rule: "If CPA > $8 AND clicks >= 10, lower bid 20%". */
 export function ruleSentence(rule: Rule, currency: string): string {
   const joiner = rule.match === "ANY" ? " OR " : " AND ";
   const conds = (rule.conditions || []).map((c) => conditionPhrase(c, currency)).join(joiner);

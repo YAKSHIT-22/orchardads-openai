@@ -40,12 +40,12 @@ function csvEscape(v: string | number | null | undefined): string {
 }
 
 function downloadCsv(suggestions: Suggestion[], strategyName: string) {
-  const header = ["Entity", "Scope", "Campaign", "Geo", "Rule", "Action", "Current", "New", "Spend", "Installs", "Taps", "CPA"];
+  const header = ["Entity", "Scope", "Campaign", "Geo", "Rule", "Action", "Current", "New", "Spend", "Conversions", "Clicks", "CPA"];
   const lines = suggestions.map((s) =>
     [
       s.entityName, s.scope, s.campaignName || "", s.geo || "", s.ruleName, s.actionLabel,
       s.currentValue ?? "", s.newValue ?? "",
-      s.metrics?.SPEND ?? "", s.metrics?.INSTALLS ?? "", s.metrics?.TAPS ?? "", s.metrics?.CPA ?? "",
+      s.metrics?.SPEND ?? "", s.metrics?.CONVERSIONS ?? "", s.metrics?.CLICKS ?? "", s.metrics?.CPA ?? "",
     ]
       .map(csvEscape)
       .join(",")

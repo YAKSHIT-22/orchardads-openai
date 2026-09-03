@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   BarChart2, ChevronRight, CheckCircle2,
-  Key, ArrowRight, ShieldMinus, Gauge, Sprout, Layers,
+  Key, ArrowRight, ShieldMinus, Gauge, Stethoscope, TrendingUp, Layers,
   Tag, Mail, ClipboardCheck, BellRing, Workflow,
 } from "lucide-react";
 import MarketingHeader from "@/components/marketing/MarketingHeader";
@@ -9,28 +9,31 @@ import MarketingFooter from "@/components/marketing/MarketingFooter";
 import Eyebrow from "@/components/marketing/Eyebrow";
 
 const optimizeTools = [
-  { icon: ClipboardCheck, label: "Orchard Inspector" },
-  { icon: ShieldMinus, label: "Waste Blocker" },
+  { icon: Stethoscope, label: "Serving Doctor" },
+  { icon: ClipboardCheck, label: "Review Doctor" },
+  { icon: ShieldMinus, label: "Waste Finder" },
+  { icon: Gauge, label: "Budget Pacing" },
+  { icon: TrendingUp, label: "Bid Optimizer" },
   { icon: BellRing, label: "Orchard Watch" },
   { icon: Workflow, label: "Autopilot" },
-  { icon: Sprout, label: "Keyword Harvest" },
-  { icon: Gauge, label: "Budget Pacing" },
-  { icon: BarChart2, label: "N-Gram Analyzer" },
   { icon: Mail, label: "Scheduled Reports" },
 ];
 
 const steps = [
   { step: "01", title: "Create your account", desc: "Sign up with email verification in under two minutes." },
   { step: "02", title: "Connect OpenAI Ads", desc: "Issue an API key in Ads Manager and paste it in. We encrypt it before it touches our database." },
-  { step: "03", title: "Enter your credentials", desc: "Drop in your Client, Team and Key IDs — we handle the rest, encrypted." },
-  { step: "04", title: "Optimize & grow", desc: "Launch campaigns, cut wasted spend, and automate the busywork." },
+  { step: "03", title: "See what's broken", desc: "Serving Doctor and Review Doctor answer \u201cwhy isn\u2019t this running?\u201d in seconds \u2014 before any history exists." },
+  { step: "04", title: "Fix it safely", desc: "Approve a recommendation, apply it, roll it back if you change your mind. Every change is logged." },
 ];
 
 const included = [
-  "Campaigns, ad groups, keywords & ads", "Bulk campaign control", "Waste Blocker negative keywords",
-  "Creative & rejection handling", "Campaign, keyword & search-term reports", "CSV export everywhere",
-  "Budget pacing & geo-targeting", "Orchard Inspector account audits", "Keyword Harvest", "Autopilot rule engine",
-  "Orchard Watch alerts & monitoring", "Scheduled email reports", "Dashboards & Live Share", "Encrypted key storage",
+  "Serving Doctor \u2014 why nothing is delivering", "Review Doctor \u2014 decode ad rejections",
+  "Campaigns, ad groups & ads", "Waste Finder", "Budget pacing & exhaustion forecasts",
+  "Bid Optimizer on ad-group max bids", "Context hints \u2014 the only targeting text this platform has",
+  "Country & device breakdowns", "Campaign, ad group and ad reports", "CSV export everywhere",
+  "Orchard Inspector account audits", "Autopilot rule engine with guardrails",
+  "Orchard Watch alerts & anomaly detection", "Scheduled email reports", "Dashboards & Live Share",
+  "Approval, rollback and a full audit trail", "Encrypted key storage",
 ];
 
 export default function Home() {
@@ -59,8 +62,8 @@ export default function Home() {
           </h1>
 
           <p className="text-muted-foreground max-w-xl text-lg leading-relaxed">
-            Create and manage campaigns, then let the optimization engine find wasted spend,
-            harvest winning keywords, and auto-pause what isn&apos;t working — all in one place.
+            Find out why your ads aren&apos;t delivering, where spend is going nowhere, and what to
+            do about it — then apply the fix safely, with a human in the loop.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
@@ -95,13 +98,13 @@ export default function Home() {
               <span className="w-3 h-3 rounded-full bg-destructive/50" />
               <span className="w-3 h-3 rounded-full bg-yellow-400/60" />
               <span className="w-3 h-3 rounded-full bg-green-400/60" />
-              <span className="ml-3 text-xs text-muted-foreground font-mono">orchardads.app / dashboard</span>
+              <span className="ml-3 text-xs text-muted-foreground font-mono">orchardads.in / dashboard</span>
             </div>
             <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 { label: "Impressions", value: "2.4M", trend: "+12%" },
-                { label: "Taps", value: "84K", trend: "+8%" },
-                { label: "Installs", value: "6,240", trend: "+21%" },
+                { label: "Clicks", value: "84K", trend: "+8%" },
+                { label: "Conversions", value: "6,240", trend: "+21%" },
                 { label: "Spend", value: "$18,420", trend: "-3%" },
               ].map((kpi) => (
                 <div key={kpi.label} className="bg-background rounded-xl p-4 border border-border">
@@ -113,16 +116,16 @@ export default function Home() {
             </div>
             <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { name: "iOS Summer Push", status: "RUNNING", budget: "$120/day", installs: "1,420" },
-                { name: "UK Product Launch", status: "PAUSED", budget: "$80/day", installs: "340" },
-                { name: "Japan Market Entry", status: "RUNNING", budget: "$200/day", installs: "890" },
+                { name: "Spring launch", status: "ACTIVE", budget: "$4,200 left", conversions: "1,420" },
+                { name: "Retargeting \u2014 EU", status: "PAUSED", budget: "$0 left", conversions: "340" },
+                { name: "Always-on brand", status: "ACTIVE", budget: "$9,800 left", conversions: "890" },
               ].map((c) => (
                 <div key={c.name} className="bg-background rounded-xl p-4 border border-border flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${c.status === "RUNNING" ? "bg-green-500/10 text-green-600" : "bg-yellow-500/10 text-yellow-600"}`}>{c.status}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${c.status === "ACTIVE" ? "bg-green-500/10 text-green-600" : "bg-yellow-500/10 text-yellow-600"}`}>{c.status}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{c.budget}</span><span>{c.installs} installs</span></div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{c.budget}</span><span>{c.conversions} conv.</span></div>
                 </div>
               ))}
             </div>
@@ -143,7 +146,7 @@ export default function Home() {
             <div className="md:col-span-2 md:row-span-2 rounded-3xl border border-border bg-card p-7 flex flex-col justify-between overflow-hidden relative group">
               <div>
                 <div className="flex items-center gap-2 text-primary"><Layers className="w-5 h-5" /><span className="text-sm font-medium">Manage</span></div>
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight max-w-sm">Campaigns, ad groups, keywords and creatives — in one flow.</h3>
+                <h3 className="mt-4 text-2xl font-semibold tracking-tight max-w-sm">Campaigns, ad groups and ads — in one flow.</h3>
                 <p className="mt-2 text-sm text-muted-foreground max-w-sm">A guided builder that resumes on error, plus standalone managers with bulk edits and inline bidding.</p>
               </div>
               <div className="mt-6 flex flex-col gap-2">
@@ -172,7 +175,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="font-semibold">Reports & analytics</h3>
-                <p className="text-sm text-muted-foreground mt-1">Campaign, keyword, search-term and ad-level — with CSV export.</p>
+                <p className="text-sm text-muted-foreground mt-1">Campaign, ad group, ad and segment level — with CSV export.</p>
               </div>
             </div>
 
@@ -199,7 +202,8 @@ export default function Home() {
             <h2 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-[-0.02em]">An optimization engine, not just a dashboard.</h2>
             <p className="mt-4 text-muted-foreground leading-relaxed max-w-md">
               Most tools show you numbers. OrchardAds acts on them — surfacing wasted spend, promoting
-              converting search terms, tuning bids to your target CPA, and pausing what crosses your limits, on a schedule.
+              under-performing ad groups, tuning bids toward your target CPA, and pausing what crosses
+              your limits — on a schedule, inside guardrails you set.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
               <Link href="/signup" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all">

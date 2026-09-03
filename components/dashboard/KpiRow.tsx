@@ -4,7 +4,7 @@
  * Dashboard KPI strip — a single horizontally-scrollable line of headline
  * metrics derived from the campaign report totals, separated by vertical
  * dividers. Metrics come from the shared chart-metric registry (native +
- * calculated: CPA, CPT, CPM, CVR, TTR); ratios render "—" when the
+ * calculated: CPA, CPC, CPM, CVR, CTR); ratios render "—" when the
  * denominator is zero rather than a misleading 0.
  *
  * With `selectable`, a table-style "Metrics" picker (checkbox dropdown) lets

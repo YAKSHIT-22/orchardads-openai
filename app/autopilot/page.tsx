@@ -18,7 +18,7 @@ const steps = [
     step: "01",
     icon: Layers,
     title: "Build a rule",
-    desc: "Pick a scope — campaigns, ad groups, ads, keywords or countries — and describe what to catch: “If CPA > $8 and taps ≥ 10, lower the bid 20%.”",
+    desc: "Pick a scope — campaigns, ad groups, ads or countries — and describe what to catch: “If CPA > $50 and conversions ≥ 5, lower the bid 20%.”",
   },
   {
     step: "02",
@@ -63,16 +63,16 @@ const features = [
   {
     icon: Sparkles,
     title: "Templates to start from",
-    desc: "Pause wasteful keywords, cut expensive bids, scale winning ad groups — load a proven starting point and tweak it to your account.",
+    desc: "Pause ad groups with no conversions, cut expensive bids, top up campaigns that are converting — load a proven starting point and tweak it to your account.",
   },
 ];
 
 /* Static, illustrative mock data — not tied to any account. */
 const mockSuggestions = [
-  { checked: true, name: "travel planner app", ctx: "Keyword · in iOS Summer Push", action: "Bid $1.20 → $0.96 (−20%)", tone: "sky", spend: "$142.10", installs: "9" },
-  { checked: true, name: "cheap flight finder", ctx: "Keyword · in iOS Summer Push", action: "Pause", tone: "amber", spend: "$88.40", installs: "0" },
-  { checked: false, name: "vacation deals", ctx: "Keyword · in UK Product Launch", action: "Report only", tone: "zinc", spend: "$12.75", installs: "1" },
-  { checked: true, name: "trip organizer", ctx: "Keyword · in Japan Market Entry", action: "Bid $0.80 → $0.92 (+15%)", tone: "sky", spend: "$204.90", installs: "61" },
+  { checked: true, name: "Productivity — broad", ctx: "Ad group · in Spring launch", action: "Max bid $1.20 → $0.96 (−20%)", tone: "sky", spend: "$142.10", conversions: "9" },
+  { checked: true, name: "Cold prospecting", ctx: "Ad group · in Spring launch", action: "Pause", tone: "amber", spend: "$88.40", conversions: "0" },
+  { checked: false, name: "Retargeting — EU", ctx: "Ad group · in Retargeting", action: "Report only", tone: "zinc", spend: "$12.75", conversions: "1" },
+  { checked: true, name: "High-intent buyers", ctx: "Ad group · in Always-on brand", action: "Max bid $0.80 → $0.92 (+15%)", tone: "sky", spend: "$204.90", conversions: "61" },
 ];
 
 const toneClass: Record<string, string> = {
@@ -110,7 +110,7 @@ export default function AutopilotLandingPage() {
           </h1>
 
           <p className="text-muted-foreground max-w-xl text-lg leading-relaxed">
-            Rules that optimize while you sleep. Describe what a wasteful keyword or a winning ad group looks
+            Rules that optimize while you sleep. Describe what a wasteful ad group or a winning campaign looks
             like — Autopilot finds them, shows you exactly what it wants to change, and applies it on your say-so.
           </p>
 
@@ -138,8 +138,8 @@ export default function AutopilotLandingPage() {
               {/* Rule builder mock */}
               <div className="rounded-xl border border-border bg-background p-4 flex flex-col gap-3 text-left">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">Pause wasteful keywords</p>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Keyword scope</span>
+                  <p className="text-sm font-semibold">Pause ad groups with no conversions</p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Ad group scope</span>
                 </div>
                 <div className="flex flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
@@ -150,17 +150,17 @@ export default function AutopilotLandingPage() {
                   </div>
                   <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
                     <span className="text-muted-foreground w-6">and</span>
-                    <span className="font-medium">Installs</span>
+                    <span className="font-medium">Conversions</span>
                     <span className="text-muted-foreground">equals</span>
                     <span className="rounded bg-muted px-1.5 py-0.5 tabular-nums">0</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
                     <span className="text-muted-foreground w-6">Then</span>
-                    <span className="font-medium text-primary">Pause the keyword</span>
+                    <span className="font-medium text-primary">Pause the ad group</span>
                   </div>
                 </div>
                 <p className="text-[11px] text-muted-foreground border border-dashed border-border rounded-lg px-3 py-2 leading-snug">
-                  If Spend ≥ $10.00 AND Installs = 0 → pause · last 30 days
+                  If Spend ≥ $25 AND Clicks ≥ 40 AND Conversions = 0 → pause · last 30 days
                 </p>
                 <div className="mt-auto flex items-center justify-between pt-1">
                   <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -197,7 +197,7 @@ export default function AutopilotLandingPage() {
                       </span>
                       <div className="hidden sm:block text-right shrink-0 w-20">
                         <p className="text-[11px] tabular-nums">{s.spend}</p>
-                        <p className="text-[10px] text-muted-foreground tabular-nums">{s.installs} installs</p>
+                        <p className="text-[10px] text-muted-foreground tabular-nums">{s.conversions} conv.</p>
                       </div>
                     </div>
                   ))}

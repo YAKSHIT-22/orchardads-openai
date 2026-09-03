@@ -247,8 +247,8 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Advanced analytics (projected spend, PPC investigator, impression
-            share, market expansion), scoped to the campaign selection. */}
+        {/* Advanced analytics (performance change, segment breakdown),
+            scoped to the campaign selection. */}
         <MoreDashboardWidgets
           adAccountId={adAccountId as string}
           scopedRows={scopedRows}

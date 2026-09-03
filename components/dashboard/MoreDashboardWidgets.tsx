@@ -5,11 +5,12 @@
  *   - Performance Change     (window vs the equal-length window before it)
  *   - Segment Breakdown      (country / device, from the insights segments API)
  *
- * TWO WIDGETS WERE REMOVED because their data does not exist
+ * THREE WIDGETS WERE REMOVED because their data does not exist
  * on this platform:
- *   - PPC Investigator   drilled into search terms and keywords. No keywords.
- *   - Market Expansion   listed App Store countries the app was eligible in but
- *                        not targeting. No app, no eligibility endpoint.
+ *   - PPC Investigator   drilled into search terms and keywords. This API has
+ *                        neither; ad-group targeting is free-text context hints.
+ *   - Market Expansion   listed countries an app was eligible in but not
+ *                        targeting. No app catalogue, no eligibility endpoint.
  *   - Projected Spend    projected against a monthly budget target. OpenAI Ads
  *                        campaigns carry lifetime budgets, so that target is
  *                        usually unknowable — Budget Pacing answers the real

@@ -30,8 +30,6 @@ import { CalendarClock, Loader2, Mail, Plus, Send, Trash2 } from "lucide-react";
 const LEGACY_TYPE_LABELS: Record<string, string> = {
   campaign: "Campaigns report",
   adgroup: "Ad groups report",
-  keyword: "Keywords report",
-  searchterm: "Search terms report",
   ad: "Ads report",
 };
 

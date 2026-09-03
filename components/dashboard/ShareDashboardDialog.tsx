@@ -8,7 +8,7 @@
  *
  * Widget keys mirror the server contract (app/api/shared-dashboards):
  * trend / comparison / topCampaigns / topPlacements / budgetPacing /
- * projectedSpend / performanceChange / impressionShare.
+ * projectedSpend / performanceChange.
  * KPIs are always part of a share and are not a checkbox.
  */
 
@@ -55,7 +55,6 @@ import {
   CalendarDays,
   CalendarClock,
   TrendingUpDown,
-  Radar,
   TimerOff,
   LayoutGrid,
   type LucideIcon,
@@ -66,11 +65,10 @@ const WIDGET_OPTIONS: { key: string; label: string; desc: string; icon: LucideIc
   { key: "trend", label: "Performance chart", desc: "Daily trend for any metric", icon: Activity },
   { key: "comparison", label: "Metric comparison", desc: "Two metrics on a dual axis", icon: GitCompareArrows },
   { key: "topCampaigns", label: "Top campaigns", desc: "Ranked by spend with CPA", icon: Trophy },
-  { key: "topPlacements", label: "Top placements", desc: "Spend by App Store placement", icon: Store },
+  { key: "topPlacements", label: "Top placements", desc: "Spend by placement", icon: Store },
   { key: "budgetPacing", label: "Budget pacing", desc: "Daily spend vs. daily budget", icon: Gauge },
   { key: "projectedSpend", label: "Projected spend", desc: "Month-end pace vs. budget target", icon: CalendarClock },
   { key: "performanceChange", label: "Performance change", desc: "vs. the previous period, with top movers", icon: TrendingUpDown },
-  { key: "impressionShare", label: "Impression share", desc: "Share of voice per app & search term", icon: Radar },
 ];
 
 // Relative ranges only — a Live Share link stays live and recomputes on view.
@@ -417,7 +415,7 @@ export function ShareDashboardDialog({
                         </span>
                       </span>
                       <span className="block text-[11px] text-muted-foreground mt-0.5">
-                        Spend, installs, CPA, CPT, TTR, CVR and more.
+                        Spend, conversions, CPA, CPC, CTR, CVR and more.
                       </span>
                     </span>
                   </div>

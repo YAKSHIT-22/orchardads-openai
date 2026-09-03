@@ -7,9 +7,9 @@
  */
 
 export type BidConfig = {
-  /** Target cost-per-install (account currency). */
+  /** Target cost-per-conversion (account currency). */
   targetCpa: number;
-  /** Minimum clicks before a zero-install keyword is judged (avoids noise). */
+  /** Minimum clicks before a zero-conversion ad group is judged (avoids noise). */
   minTaps: number;
   /** Bid change is clamped to ±this fraction (0.5 = ±50%). */
   maxChange: number;

@@ -12,10 +12,10 @@ export type ReportWidgetType =
   | "kpiRow" // scorecard tiles for chosen metrics
   | "timeSeries" // daily line/area chart for one metric
   | "metricCompare" // two-metric comparison over time
-  | "breakdownTable" // table of entities (campaign/adgroup/keyword/searchterm/ad) with metric columns
+  | "breakdownTable" // table of entities (campaign/adgroup/ad/country/device) with metric columns
   | "topPerformers" // ranked top-N entities by a metric
   | "distribution" // share of a metric across entities (pie/bar)
-  | "funnel" // impressions → taps → installs
+  | "funnel" // impressions → clicks → conversions
   | "narrative" // free-text / auto summary
   | "spacer"; // divider / page break
 
@@ -55,7 +55,7 @@ export const REPORT_WIDGETS: ReportWidgetDef[] = [
   {
     type: "kpiRow",
     name: "KPI scorecards",
-    description: "Headline totals for the metrics you pick (spend, installs, CPA…).",
+    description: "Headline totals for the metrics you pick (spend, conversions, CPA…).",
     icon: "LayoutGrid",
     fields: ["metrics"],
     needsData: true,
@@ -79,7 +79,7 @@ export const REPORT_WIDGETS: ReportWidgetDef[] = [
   {
     type: "breakdownTable",
     name: "Performance table",
-    description: "A table of campaigns, ad groups, keywords, search terms or ads.",
+    description: "A table of campaigns, ad groups, ads, countries or devices.",
     icon: "Table",
     fields: ["entity", "metrics", "limit"],
     needsData: true,
@@ -103,7 +103,7 @@ export const REPORT_WIDGETS: ReportWidgetDef[] = [
   {
     type: "funnel",
     name: "Conversion funnel",
-    description: "Impressions → taps → installs, with rates.",
+    description: "Impressions → clicks → conversions, with rates.",
     icon: "Filter",
     fields: [],
     needsData: true,

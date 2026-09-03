@@ -1,7 +1,7 @@
 /**
  * Chart metric registry — one definition per plottable dashboard metric over
  * the daily campaign series. Raw counters are summed; derived
- * metrics (CPA, CPT, CPM, CVR, TTR) are recomputed per day / per range from
+ * metrics (CPA, CPC, CPM, CVR, CTR) are recomputed per day / per range from
  * the raw fields so range aggregates stay correct (never averaged averages).
  *
  * Division-by-zero yields `null` → rendered as "—" (or a gap in a line).
@@ -44,7 +44,7 @@ export const CHART_METRICS: ChartMetric[] = [
   {
     key: "conversions",
     label: "Conversions",
-    hint: "Total conversions (tap + view-through)",
+    hint: "Total conversions (click + view-through)",
     kind: "count",
     aggregate: "sum",
     daily: (d) => d.conversions,
@@ -70,7 +70,7 @@ export const CHART_METRICS: ChartMetric[] = [
   },
   {
     key: "cpa",
-    label: "Cost per Install",
+    label: "Cost per Conversion",
     hint: "Spend ÷ conversions",
     kind: "money",
     aggregate: "ratio",
@@ -78,8 +78,8 @@ export const CHART_METRICS: ChartMetric[] = [
     range: (days) => ratio(sum(days, (d) => d.spendMicros), sum(days, (d) => d.conversions)),
   },
   {
-    key: "cpt",
-    label: "Cost per Tap",
+    key: "cpc",
+    label: "CPC",
     hint: "Spend ÷ clicks",
     kind: "money",
     aggregate: "ratio",
@@ -112,7 +112,7 @@ export const CHART_METRICS: ChartMetric[] = [
   },
   {
     key: "ctr",
-    label: "Tap-through Rate",
+    label: "Click-through Rate",
     hint: "Clicks ÷ impressions",
     kind: "percent",
     aggregate: "ratio",

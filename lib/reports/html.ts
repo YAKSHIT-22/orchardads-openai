@@ -38,7 +38,7 @@ function funnel(w: RenderedWidget): string {
     ${bar("Clicks", clicks, impressions, "#8b5cf6")}
     ${bar("Conversions", conversions, impressions, "#6d28d9")}
   </table>
-  <p style="margin:8px 0 0;font-size:12px;color:${MUTED}">Tap-through ${ctr}% · Conversion ${cvr}%</p>`;
+  <p style="margin:8px 0 0;font-size:12px;color:${MUTED}">Click-through ${ctr}% · Conversion ${cvr}%</p>`;
 }
 
 function table(w: RenderedWidget, currency: string): string {

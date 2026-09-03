@@ -128,7 +128,6 @@ export function buildSuggestions(input: {
   wasted: { totalWasted: number; count: number } | null;
   /** Campaigns the platform reports as unable to deliver. */
   blocked?: { name: string; issues: string[] }[];
-  deepDiveCampaignName?: string;
   /** Campaigns spending without a single conversion in the window. */
   zeroConversion: { name: string; spend: number }[];
 }): Suggestion[] {

@@ -36,7 +36,7 @@ export function AuthShowcase() {
       {/* floating mock composition */}
       <div className="relative z-10 flex-1 flex items-center justify-center my-6">
         <div className="relative w-full max-w-sm">
-          {/* App Store search-ad card */}
+          {/* ChatGPT conversational ad card */}
           <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 shadow-2xl shadow-black/40">
             <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-xs text-white/60">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
@@ -59,7 +59,7 @@ export function AuthShowcase() {
 
           {/* floating KPI card */}
           <div className="absolute -right-4 -top-6 rotate-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3 shadow-xl shadow-black/40">
-            <div className="text-[10px] text-white/60">Installs · 30d</div>
+            <div className="text-[10px] text-white/60">Conversions · 30d</div>
             <div className="text-xl font-bold flex items-center gap-1">12,480 <TrendingUp className="h-4 w-4 text-emerald-300" /></div>
           </div>
 

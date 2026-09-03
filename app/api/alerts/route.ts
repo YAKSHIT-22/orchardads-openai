@@ -6,7 +6,7 @@ import { ALERT_METRIC_KEYS } from "@/lib/alerts/metrics";
 import { NextResponse } from "next/server";
 
 const KINDS = ["METRIC", "BUDGET", "ANOMALY"];
-const SCOPES = ["ACCOUNT", "CAMPAIGN", "ADGROUP", "KEYWORD"];
+const SCOPES = ["ACCOUNT", "CAMPAIGN", "ADGROUP", "AD"];
 const COMPARATORS = ["ABOVE", "BELOW", "CHANGE_UP", "CHANGE_DOWN"];
 const SEVERITIES = ["INFO", "WARNING", "CRITICAL"];
 const ACTIONS = ["NOTIFY", "PAUSE"];
@@ -44,8 +44,8 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
   if (!name || !String(name).trim()) throw new AppError("A name is required", 400);
   if (!KINDS.includes(kind)) throw new AppError("Invalid alert type", 400);
   if (!SCOPES.includes(scope)) throw new AppError("Invalid scope", 400);
-  if ((scope === "ADGROUP" || scope === "KEYWORD") && !campaignId) {
-    throw new AppError("A campaign is required for ad-group and keyword alerts", 400);
+  if ((scope === "ADGROUP" || scope === "AD") && !campaignId) {
+    throw new AppError("A campaign is required for ad-group and ad alerts", 400);
   }
 
   const data: any = {

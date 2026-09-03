@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   Shield, Zap, Globe, ChevronRight, Code2, Lock, BarChart2, ArrowRight,
-  ClipboardCheck, ShieldMinus, BellRing, Workflow, Sprout, Gauge, Mail,
+  ClipboardCheck, ShieldMinus, BellRing, Workflow, Stethoscope, Gauge, Mail,
 } from "lucide-react";
 import MarketingHeader from "@/components/marketing/MarketingHeader";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
@@ -14,12 +14,12 @@ export const metadata = {
 
 const tools = [
   { icon: ClipboardCheck, name: "Orchard Inspector", desc: "Audits your whole account for structural issues, missed settings and quick wins." },
-  { icon: ShieldMinus, name: "Waste Blocker", desc: "Surfaces wasted spend and blocks it with negative keywords in one click." },
+  { icon: ShieldMinus, name: "Waste Finder", desc: "Surfaces spend that produced no conversions \u2014 gated on enough clicks that zero actually means something." },
   { icon: BellRing, name: "Orchard Watch", desc: "Alerts and monitoring that catch anomalies before they burn budget." },
   { icon: Workflow, name: "Autopilot", desc: "A rule engine that tunes bids and pauses underperformers on a schedule." },
-  { icon: Sprout, name: "Keyword Harvest", desc: "Promotes converting search terms into managed keywords automatically." },
+  { icon: Stethoscope, name: "Serving Doctor", desc: "Decodes the platform\u2019s own serving-issue codes into a root cause and a fix." },
   { icon: Gauge, name: "Budget Pacing", desc: "Keeps every campaign on plan so budgets land where you expect." },
-  { icon: BarChart2, name: "N-Gram Analyzer", desc: "Finds word-level patterns across search terms you'd never spot by hand." },
+  { icon: ClipboardCheck, name: "Review Doctor", desc: "Groups rejected ads by cause \u2014 usually a crawler or landing-page problem you can fix today." },
   { icon: Mail, name: "Reports & Live Share", desc: "Deep reports, scheduled emails, and dashboards you can share with a link." },
 ];
 
@@ -47,7 +47,7 @@ const values = [
   {
     icon: <BarChart2 className="w-5 h-5" />,
     title: "Data driven",
-    desc: "Live impressions, taps, installs and CPA, plus an optimization engine that acts on the numbers — not just displays them.",
+    desc: "Live impressions, clicks, conversions and CPA, plus an optimization engine that acts on the numbers \u2014 not just displays them.",
   },
   {
     icon: <Lock className="w-5 h-5" />,

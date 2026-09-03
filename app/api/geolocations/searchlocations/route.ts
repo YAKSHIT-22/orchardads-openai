@@ -25,7 +25,10 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
     return NextResponse.json({ message: "Locations fetched", locations: JSON.parse(cached) }, { status: 200 });
   }
 
-  const locations = await GeoService.search({ userId, adAccountId }, term, Math.min(Number(limit) || 25, 100));
+  // `/geo_lookup/search` returns { query, count, results } — not the usual
+  // { object, data } envelope every other list endpoint uses.
+  const res = await GeoService.search({ userId, adAccountId }, term, Math.min(Number(limit) || 25, 100));
+  const locations = res.results ?? [];
 
   await redis.set(key, JSON.stringify(locations), "EX", SEARCH_GEO_LOCATIONS);
   return NextResponse.json({ message: "Locations fetched", locations }, { status: 200 });

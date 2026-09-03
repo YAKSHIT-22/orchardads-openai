@@ -3,7 +3,7 @@ import { withAdsRoute, AppError } from "@/lib/openai/client";
 import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
-const TYPES = ["campaign", "adgroup", "keyword", "searchterm", "ad"];
+const TYPES = ["campaign", "adgroup", "ad"];
 const FREQS = ["DAILY", "WEEKLY", "MONTHLY"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

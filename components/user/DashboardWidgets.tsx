@@ -1,16 +1,17 @@
 "use client";
 
 /**
- * Dashboard insight widgets — orchestrates the analysis widgets built on the
- * org-wide campaign report plus campaign meta and per-campaign keyword /
- * search-term reports:
+ * Dashboard insight widgets — built on the org-wide campaign report plus
+ * campaign metadata:
  *
- *  - Top Suggestions   (wasted spend + keyword harvest + budget pacing)
- *  - Budget Pacing     (avg daily spend vs daily budget)
- *  - Top Placements    (spend by supplySource placement)
- *  - Top Campaigns     (top elements, with ad-group drill-down tray)
- *  - Conversion Funnel
- *  - Campaign Deep Dive (top keywords + top search terms)
+ *  - Top Suggestions   (serving blocks + wasted spend + budget pacing)
+ *  - Budget Pacing     (spend rate vs lifetime budget — runway, not utilisation)
+ *  - Top Placements    (spend by placement)
+ *  - Top Campaigns     (top spenders, with ad-group drill-down tray)
+ *  - Conversion Funnel (impressions -> clicks -> conversions)
+ *
+ * Campaign Deep Dive was dropped: it ranked keywords and the search terms
+ * behind them, and this API has neither.
  */
 
 import { useMemo, useState } from "react";
@@ -65,22 +66,9 @@ export function DashboardWidgets({
 
   // ── Shared data ─────────────────────────────────────────────────────────────
   const metaQuery = useCampaignMeta(adAccountId);
-  const meta = metaQuery.data || [];
 
   const top = useMemo(() => [...campaigns].sort((a, b) => spendOf(b) - spendOf(a)).slice(0, 6), [campaigns]);
   const maxSpend = top.length ? spendOf(top[0]) : 0;
-
-  // Deep-dive campaign: user choice, else the top spender that supports keywords.
-  const [chosenId, setChosenId] = useState<string | null>(null);
-  const defaultDeepDiveId = useMemo(() => {
-    // Highest spender first — with no placement types to prefer between, the
-    // campaign moving the most money is simply the one worth looking at.
-    const bySpend = [...campaigns].sort((a, b) => spendOf(b) - spendOf(a));
-    const preferred = bySpend.find((c) => spendOf(c) > 0) ?? bySpend[0];
-    return preferred ? String(preferred.campaignId) : (meta[0]?.id ?? null);
-  }, [campaigns, meta]);
-  const deepDiveId = chosenId ?? defaultDeepDiveId;
-  const deepDiveMeta = meta.find((m) => m.id === deepDiveId);
 
   // ── Budget pacing (shared by the pacing widget and suggestions) ─────────────
   //
@@ -105,7 +93,7 @@ export function DashboardWidgets({
 
   const suggestions = useMemo(() => {
     // Wasted spend is now measured on the campaigns themselves — there are no
-    // search terms on this platform to attribute it to.
+    // search terms on this platform to attribute it to (this API has none).
     const wasted = findWastedSpend(
       campaigns.map((c) => ({
         id: c.campaignId,
@@ -135,10 +123,9 @@ export function DashboardWidgets({
       pacing,
       wasted: totalWastedMicros > 0 ? { totalWasted: totalWastedMicros, count: wasted.length } : null,
       blocked,
-      deepDiveCampaignName: deepDiveMeta?.name,
       zeroConversion,
     });
-  }, [campaigns, currency, pacing, deepDiveMeta?.name]);
+  }, [campaigns, currency, pacing]);
 
   const suggestionsLoading = metaQuery.isLoading;
 
@@ -240,7 +227,7 @@ export function DashboardWidgets({
                 ))}
                 <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
                   <div className="rounded-lg bg-muted/60 p-2">
-                    <div className="text-muted-foreground">Tap-through</div>
+                    <div className="text-muted-foreground">Click-through</div>
                     <div className="font-semibold">{funnel.impressions ? ((funnel.clicks / funnel.impressions) * 100).toFixed(2) : "0.00"}%</div>
                   </div>
                   <div className="rounded-lg bg-muted/60 p-2">
@@ -254,8 +241,6 @@ export function DashboardWidgets({
         </Card>
       </div>
 
-      {/* Campaign deep dive: top keywords + top search terms */}
-      
       <AdGroupTray campaign={tray} adAccountId={adAccountId} dateRange={dateRange} currency={currency} onClose={() => setTray(null)} />
     </div>
   );

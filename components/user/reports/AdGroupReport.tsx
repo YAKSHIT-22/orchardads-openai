@@ -50,9 +50,9 @@ export function AdGroupReport({ data, filters, uniqueCampaigns, uniqueAdGroups }
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Impressions</TableHead>
                 <TableHead className="text-right">Clicks</TableHead>
-                <TableHead className="text-right">TTR</TableHead>
+                <TableHead className="text-right">CTR</TableHead>
                 <TableHead className="text-right">Conversions</TableHead>
-                <TableHead className="text-right">Install Rate</TableHead>
+                <TableHead className="text-right">Conv. Rate</TableHead>
                 <TableHead className="text-right">Spend</TableHead>
                 <TableHead className="text-right">CPI</TableHead>
               </TableRow>

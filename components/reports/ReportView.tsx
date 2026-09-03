@@ -288,7 +288,7 @@ function FunnelWidget({ data, accent }: { data: any; accent: string }) {
         <div key={s.label}>
           {i > 0 && (
             <p className="text-[11px] text-zinc-400 pl-[120px] py-0.5">
-              ↓ {i === 1 ? `Tap-through rate ${ctr.toFixed(2)}%` : `Conversion rate ${cvr.toFixed(2)}%`}
+              ↓ {i === 1 ? `Click-through rate ${ctr.toFixed(2)}%` : `Conversion rate ${cvr.toFixed(2)}%`}
             </p>
           )}
           <div className="grid grid-cols-[110px_1fr_auto] items-center gap-3">

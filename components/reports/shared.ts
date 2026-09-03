@@ -144,7 +144,7 @@ export function widgetSummary(w: ReportWidgetInstance): string {
     case "distribution":
       return `${metricLabel(c.metric)} across ${entityLabel(c.entity).toLowerCase()} · ${c.chartStyle || "pie"}`;
     case "funnel":
-      return "Impressions → taps → installs";
+      return "Impressions → clicks → conversions";
     case "narrative":
       return c.text ? `${c.text.slice(0, 64)}${c.text.length > 64 ? "…" : ""}` : "Empty text block";
     case "spacer":
@@ -248,25 +248,25 @@ export const STARTER_PRESETS: StarterPreset[] = [
     }),
   },
   {
-    key: "keyword-deep-dive",
-    name: "Keyword deep-dive",
-    description: "Top keywords, the search terms behind them, and efficiency KPIs.",
+    key: "adgroup-ad-deep-dive",
+    name: "Ad group & ad deep-dive",
+    description: "Which ad groups carry the spend, and which creatives convert.",
     icon: Trophy,
     build: () => ({
-      name: "Keyword deep-dive",
-      description: "Keyword and search-term performance",
+      name: "Ad group & ad deep-dive",
+      description: "Ad group and ad performance",
       dateRange: "30d",
       cover: {
-        title: "Keyword deep-dive",
-        subtitle: "What people search, what converts",
+        title: "Ad group & ad deep-dive",
+        subtitle: "Where the spend goes, and what converts",
         accent: DEFAULT_ACCENT,
         logoText: "",
         hideBranding: false,
       },
       widgets: [
         preset("kpiRow", "Headline KPIs", { metrics: ["SPEND", "CLICKS", "CONVERSIONS", "CPC"] }),
-        preset("topPerformers", "Top keywords by installs", { entity: "adgroup", metric: "CONVERSIONS", limit: 10 }),
-        preset("breakdownTable", "Search terms", {
+        preset("topPerformers", "Top ad groups by conversions", { entity: "adgroup", metric: "CONVERSIONS", limit: 10 }),
+        preset("breakdownTable", "Ads", {
           entity: "ad",
           metrics: ["SPEND", "CLICKS", "CONVERSIONS", "CONVERSION_RATE"],
           limit: 15,
@@ -277,7 +277,7 @@ export const STARTER_PRESETS: StarterPreset[] = [
   {
     key: "executive-summary",
     name: "Executive summary",
-    description: "A short narrative, KPIs, spend vs installs and where the budget goes.",
+    description: "A short narrative, KPIs, spend vs conversions and where the budget goes.",
     icon: Text,
     build: () => ({
       name: "Executive summary",
@@ -292,10 +292,10 @@ export const STARTER_PRESETS: StarterPreset[] = [
       },
       widgets: [
         preset("narrative", "Summary", {
-          text: "Highlights for the period: overall spend, install volume and efficiency. Edit this block to add your own commentary before sending.",
+          text: "Highlights for the period: overall spend, conversion volume and efficiency. Edit this block to add your own commentary before sending.",
         }),
         preset("kpiRow", "Headline KPIs", { metrics: ["SPEND", "CONVERSIONS", "CPA", "CONVERSION_RATE"] }),
-        preset("metricCompare", "Spend vs installs", { metric: "SPEND", metricB: "CONVERSIONS" }),
+        preset("metricCompare", "Spend vs conversions", { metric: "SPEND", metricB: "CONVERSIONS" }),
         preset("distribution", "Where the budget goes", { entity: "campaign", metric: "SPEND", chartStyle: "pie" }),
       ],
     }),

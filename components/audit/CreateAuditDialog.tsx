@@ -197,7 +197,7 @@ export function CreateAuditDialog({
                         variant="outline"
                         className="mt-1.5 text-[10px] px-1.5 py-0 border-0 bg-sky-100 text-sky-700"
                       >
-                        keyword campaigns only
+                        needs history
                       </Badge>
                     )}
                   </button>

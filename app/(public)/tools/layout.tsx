@@ -30,7 +30,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useUserStore } from "@/stores/userStore";
-import { sessionKeysToRemove } from "@/utils/globalConstants";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -148,7 +147,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       toast.success("Logged out successfully");
-      sessionKeysToRemove.forEach((key) => sessionStorage.removeItem(key));
+      // Clear everything: cached campaigns, ad groups and the selected account
+      // must not survive a logout on a shared machine.
+      sessionStorage.clear();
       router.push("/signin");
     },
     onError: () => {

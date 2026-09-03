@@ -357,7 +357,7 @@ export function StrategyBuilder({
                   <Input
                     value={form.name}
                     onChange={(e) => set("name", e.target.value)}
-                    placeholder="e.g. Pause wasteful keywords"
+                    placeholder="e.g. Pause wasteful ad groups"
                     className="h-8 text-sm"
                   />
                 </Field>
@@ -374,7 +374,7 @@ export function StrategyBuilder({
               <Field
                 label="Scope"
                 hint={editing ? undefined : "What the rules are evaluated against — each rule action applies at this level."}
-                info="The level your rules look at: every campaign, ad group, ad, keyword or country row is checked one by one, and actions apply to the rows that match. Locked after the strategy is saved."
+                info="The level your rules look at: every campaign, ad group, ad or country row is checked one by one, and actions apply to the rows that match. Locked after the strategy is saved."
               >
                 {editing && (
                   <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1 -mt-0.5">

@@ -116,8 +116,8 @@ const TEMPLATES: { label: string; patch: Partial<AlertForm> & { kind: AlertKind 
     patch: { kind: "METRIC", name: "CPA too high", metric: "CPA", comparator: "ABOVE", threshold: "", lookbackDays: "7", severity: "WARNING" },
   },
   {
-    label: "Install drop",
-    patch: { kind: "METRIC", name: "Install drop", metric: "CONVERSIONS", comparator: "CHANGE_DOWN", threshold: "30", comparePeriodDays: "7", severity: "CRITICAL" },
+    label: "Conversion drop",
+    patch: { kind: "METRIC", name: "Conversion drop", metric: "CONVERSIONS", comparator: "CHANGE_DOWN", threshold: "30", comparePeriodDays: "7", severity: "CRITICAL" },
   },
   {
     label: "Budget capped",
@@ -131,7 +131,7 @@ function scopePhrase(a: Alert): string {
   if (a.scope === "ACCOUNT") return "account total";
   if (a.scope === "CAMPAIGN") return a.campaignName ? `campaign “${a.campaignName}”` : "each campaign";
   const inCampaign = a.campaignName || (a.campaignId ? `campaign ${a.campaignId}` : "campaign");
-  return a.scope === "ADGROUP" ? `ad groups in ${inCampaign}` : `keywords in ${inCampaign}`;
+  return a.scope === "ADGROUP" ? `ad groups in ${inCampaign}` : `ads in ${inCampaign}`;
 }
 
 function fmtThresholdFor(metric: string | null, threshold: number | null, currency: string): string {
@@ -470,10 +470,10 @@ export default function OrchardWatchPage() {
     if (
       !editing &&
       form.kind === "METRIC" &&
-      (form.scope === "ADGROUP" || form.scope === "KEYWORD") &&
+      (form.scope === "ADGROUP" || form.scope === "AD") &&
       !form.campaignId
     ) {
-      return toast.error("Ad-group and keyword alerts need a campaign");
+      return toast.error("Ad-group and ad alerts need a campaign");
     }
     saveMutation.mutate();
   };
@@ -500,7 +500,7 @@ export default function OrchardWatchPage() {
             : "Plain count";
 
   const accountScope = form.kind === "METRIC" && form.scope === "ACCOUNT";
-  const campaignNeeded = form.kind === "METRIC" && (form.scope === "ADGROUP" || form.scope === "KEYWORD");
+  const campaignNeeded = form.kind === "METRIC" && (form.scope === "ADGROUP" || form.scope === "AD");
 
   /* ── Render ── */
 
@@ -679,14 +679,14 @@ export default function OrchardWatchPage() {
                       <Field
                         label="Scope"
                         hint={campaignNeeded ? "Watches every row inside the chosen campaign" : undefined}
-                        info="What level the alert watches. Account checks your org total; Campaign checks each campaign separately; Ad group and Keyword check every row inside one campaign. Locked after creation."
+                        info="What level the alert watches. Account checks your org total; Campaign checks each campaign separately; Ad group and Ad check every row inside one campaign. Locked after creation."
                       >
                         <Select value={form.scope} onValueChange={(v) => {
                           const scope = v as AlertScope;
                           setForm((f) => ({
                             ...f,
                             scope,
-                            campaignId: scope === "ADGROUP" || scope === "KEYWORD" ? f.campaignId : "",
+                            campaignId: scope === "ADGROUP" || scope === "AD" ? f.campaignId : "",
                             action: scope === "ACCOUNT" ? "NOTIFY" : f.action,
                           }));
                         }} disabled={!!editing}>
@@ -697,7 +697,7 @@ export default function OrchardWatchPage() {
                             <SelectItem value="ACCOUNT">Account</SelectItem>
                             <SelectItem value="CAMPAIGN">Campaign (each)</SelectItem>
                             <SelectItem value="ADGROUP">Ad group</SelectItem>
-                            <SelectItem value="KEYWORD">Keyword</SelectItem>
+                            <SelectItem value="AD">Ad</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
@@ -919,7 +919,7 @@ export default function OrchardWatchPage() {
                       <Field
                         label="Offset (days)"
                         hint="Ignore the last N days for conversion lag"
-                        info="Skip the most recent N days when evaluating — useful because installs can take a few days to attribute, so the freshest data often under-counts."
+                        info="Skip the most recent N days when evaluating — useful because conversions can take a few days to attribute, so the freshest data often under-counts."
                       >
                         <Input
                           type="number"

@@ -52,7 +52,7 @@ export type WidgetKpi = {
   kind: WidgetKpiKind;
   /** Additive metrics decompose cleanly into per-entity contributions. */
   additive: boolean;
-  /** Lower is better (CPA/CPT/CPM) — flips the "good/bad" colour. */
+  /** Lower is better (CPA/CPC/CPM) — flips the "good/bad" colour. */
   lowerIsBetter: boolean;
   value: (m: CoreMetrics) => number | null;
 };
@@ -64,10 +64,10 @@ export const WIDGET_KPIS: WidgetKpi[] = [
   { key: "conversions", label: "Conversions", kind: "count", additive: true, lowerIsBetter: false, value: (m) => m.conversions },
   { key: "clicks", label: "Clicks", kind: "count", additive: true, lowerIsBetter: false, value: (m) => m.clicks },
   { key: "impressions", label: "Impressions", kind: "count", additive: true, lowerIsBetter: false, value: (m) => m.impressions },
-  { key: "cpa", label: "Cost per install", kind: "money", additive: false, lowerIsBetter: true, value: (m) => ratio(m.spend, m.conversions) },
-  { key: "cpt", label: "Cost per tap", kind: "money", additive: false, lowerIsBetter: true, value: (m) => ratio(m.spend, m.clicks) },
+  { key: "cpa", label: "Cost per conversion", kind: "money", additive: false, lowerIsBetter: true, value: (m) => ratio(m.spend, m.conversions) },
+  { key: "cpc", label: "CPC", kind: "money", additive: false, lowerIsBetter: true, value: (m) => ratio(m.spend, m.clicks) },
   { key: "cvr", label: "Conversion rate", kind: "percent", additive: false, lowerIsBetter: false, value: (m) => ratio(m.conversions, m.clicks) },
-  { key: "ctr", label: "Tap-through rate", kind: "percent", additive: false, lowerIsBetter: false, value: (m) => ratio(m.clicks, m.impressions) },
+  { key: "ctr", label: "Click-through rate", kind: "percent", additive: false, lowerIsBetter: false, value: (m) => ratio(m.clicks, m.impressions) },
 ];
 
 export const getWidgetKpi = (key: string): WidgetKpi =>
@@ -274,136 +274,3 @@ export function computeProjectedSpend(
   return { mtdSpend, avgDaily, projected, target, pctOfTarget, daily };
 }
 
-/* ── Impression share (share of voice) ───────────────────────────────────── */
-
-export type SovPoint = { date: string; low: number | null; high: number | null };
-export type SovEntity = {
-  key: string;
-  app: string;
-  searchTerm: string;
-  country: string;
-  points: SovPoint[];
-  latest: SovPoint | null;
-};
-
-const asNum = (v: any): number | null => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-};
-
-/** Scan an object (and its metrics buckets) for the first numeric key matching pred. */
-function findNum(src: any, pred: (k: string) => boolean): number | null {
-  for (const obj of [src, src?.metrics, src?.total?.metrics]) {
-    if (!obj || typeof obj !== "object") continue;
-    for (const k of Object.keys(obj)) {
-      if (pred(k.toLowerCase())) {
-        const n = asNum(obj[k]);
-        if (n !== null) return n;
-      }
-    }
-  }
-  return null;
-}
-
-/** Scan an object (and its metadata) for the first string-ish key matching pred. */
-function findStr(src: any, pred: (k: string) => boolean): string {
-  for (const obj of [src, src?.metadata]) {
-    if (!obj || typeof obj !== "object") continue;
-    for (const k of Object.keys(obj)) {
-      if (pred(k.toLowerCase())) {
-        const v = obj[k];
-        if (v != null && typeof v !== "object") return String(v);
-      }
-    }
-  }
-  return "";
-}
-
-/** Normalise an impression-share number to a 0..100 percentage (accepts 0..1 fractions). */
-function toPct(v: number | null): number | null {
-  if (v === null) return null;
-  return v <= 1 ? v * 100 : v;
-}
-
-/** Human decile label, e.g. "11–20%". Falls back to a single value or "—". */
-export function decileLabel(low: number | null, high: number | null): string {
-  const lo = toPct(low);
-  const hi = toPct(high);
-  if (lo !== null && hi !== null) return `${Math.round(lo)}–${Math.round(hi)}%`;
-  const one = lo ?? hi;
-  return one !== null ? `${Math.round(one)}%` : "—";
-}
-
-/** Midpoint of a decile point for trend rendering (0..100), or null. */
-export function decileMid(p: SovPoint | null): number | null {
-  if (!p) return null;
-  const lo = toPct(p.low);
-  const hi = toPct(p.high);
-  if (lo !== null && hi !== null) return (lo + hi) / 2;
-  return lo ?? hi;
-}
-
-/**
- * Parse the impression-share report payload into per-entity decile trends.
- * The download shape isn't strongly typed by our layer, so this is defensive:
- * it locates the row array in the common places and extracts app / search-term
- * / country dimensions plus low/high impression-share bounds per date.
- */
-export function parseImpressionShare(payload: any): SovEntity[] {
-  const rows: any[] =
-    payload?.data?.rows ||
-    payload?.rows ||
-    payload?.data?.reportingDataResponse?.row ||
-    payload?.reportingDataResponse?.row ||
-    (Array.isArray(payload) ? payload : []);
-
-  const byEntity = new Map<string, SovEntity>();
-
-  const pushPoint = (app: string, searchTerm: string, country: string, point: SovPoint) => {
-    const key = `${app}|${searchTerm}|${country}`;
-    const entity =
-      byEntity.get(key) ?? { key, app, searchTerm, country, points: [], latest: null };
-    entity.points.push(point);
-    byEntity.set(key, entity);
-  };
-
-  for (const row of rows) {
-    const app = findStr(row, (k) => k.includes("appname")) || findStr(row, (k) => k === "adamid" || k.includes("adamid")) || "App";
-    const searchTerm = findStr(row, (k) => k.includes("searchterm"));
-    const country = findStr(row, (k) => k.includes("countryorregion") || k === "country");
-
-    const granular: any[] = Array.isArray(row?.granularity) ? row.granularity : [];
-    if (granular.length) {
-      for (const g of granular) {
-        const date = findStr(g, (k) => k === "date") || g.date || g.startTime?.slice(0, 10) || "";
-        const low = findNum(g, (k) => k.includes("impressionshare") && (k.includes("low") || k.includes("min")));
-        const high = findNum(g, (k) => k.includes("impressionshare") && (k.includes("high") || k.includes("max")));
-        const single = low === null && high === null ? findNum(g, (k) => k.includes("impressionshare")) : null;
-        pushPoint(app, searchTerm, country, { date, low: low ?? single, high });
-      }
-    } else {
-      const date = findStr(row, (k) => k === "date") || "";
-      const low = findNum(row, (k) => k.includes("impressionshare") && (k.includes("low") || k.includes("min")));
-      const high = findNum(row, (k) => k.includes("impressionshare") && (k.includes("high") || k.includes("max")));
-      const single = low === null && high === null ? findNum(row, (k) => k.includes("impressionshare")) : null;
-      pushPoint(app, searchTerm, country, { date, low: low ?? single, high });
-    }
-  }
-
-  const out = [...byEntity.values()];
-  for (const e of out) {
-    e.points.sort((a, b) => a.date.localeCompare(b.date));
-    e.latest = e.points.length ? e.points[e.points.length - 1] : null;
-  }
-  // Rank by latest decile midpoint (highest share first).
-  out.sort((a, b) => (decileMid(b.latest) ?? -1) - (decileMid(a.latest) ?? -1));
-  return out;
-}
-
-/** Previous equal-length window immediately preceding [startTime, endTime]. */
-export function previousPeriod(startTime: string, days: number): { startTime: string; endTime: string } {
-  const start = new Date(startTime + "T00:00:00Z");
-  const prevEnd = new Date(start.getTime() - MS_DAY);
-  const prevStart = new Date(prevEnd.getTime() - (days - 1) * MS_DAY);
-  return { startTime: isoUTC(prevStart), endTime: isoUTC(prevEnd) };
-}

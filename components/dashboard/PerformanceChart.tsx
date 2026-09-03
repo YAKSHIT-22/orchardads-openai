@@ -3,7 +3,7 @@
 /**
  * Performance widget — the dashboard's daily chart for ONE selected metric
  * (area, `--chart-1`), picked from the shared chart-metric registry (native +
- * calculated: CPA, CPT, CPM, CVR, TTR). Comparing two metrics lives in the
+ * calculated: CPA, CPC, CPM, CVR, CTR). Comparing two metrics lives in the
  * dedicated ComparisonChart, not here.
  *
  * The plot is always full width — every date in the range fits with no

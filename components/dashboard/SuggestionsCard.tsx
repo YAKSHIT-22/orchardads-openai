@@ -2,7 +2,7 @@
 
 /**
  * Top suggestions widget — high-value next actions computed from real report
- * data (wasted spend, keyword harvest, budget pacing, zero-install campaigns),
+ * data (wasted spend, serving blocks, budget pacing, zero-conversion campaigns),
  * each linking to the tool that executes it.
  */
 

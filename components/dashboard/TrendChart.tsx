@@ -3,7 +3,7 @@
 /**
  * Daily performance trend — a single-series area chart over the daily
  * campaign series. The metric comes from the shared chart-metric registry
- * (native + calculated: CPA, CPT, CPM, CVR, TTR). One axis, one hue
+ * (native + calculated: CPA, CPC, CPM, CVR, CTR). One axis, one hue
  * (`--primary`), theme-aware; the tooltip carries the exact value in the
  * org currency.
  */

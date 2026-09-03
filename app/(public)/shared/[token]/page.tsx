@@ -423,7 +423,6 @@ export default function SharedDashboardPage() {
   const hasPlacements = widgets.includes("topPlacements");
   const hasProjected = widgets.includes("projectedSpend");
   const hasPerfChange = widgets.includes("performanceChange");
-  const hasImpressionShare = widgets.includes("impressionShare");
 
   return (
     <Shell>

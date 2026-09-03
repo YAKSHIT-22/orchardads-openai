@@ -67,7 +67,6 @@ const WIDGET_LABELS: Record<string, string> = {
   budgetPacing: "Budget pacing",
   projectedSpend: "Projected spend",
   performanceChange: "Performance change",
-  impressionShare: "Impression share",
 };
 
 const fmtDate = (iso: string) =>

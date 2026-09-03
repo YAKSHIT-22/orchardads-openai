@@ -1,6 +1,6 @@
 /**
  * Tiny client-side CSV builder + Blob download. All fields are quoted so
- * commas/quotes/newlines in campaign names or search terms can't break rows.
+ * commas/quotes/newlines in campaign or ad names can't break rows.
  */
 
 export type CsvValue = string | number | null | undefined;
