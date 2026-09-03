@@ -3,6 +3,7 @@ import { withAdsRoute, AppError } from "@/lib/openai/client";
 import { renderReport } from "@/lib/reports/render";
 import { validateWidgets, isValidRange } from "@/lib/reports/validate";
 import { NextResponse } from "next/server";
+import { requireFeature } from "@/lib/billing/entitlements";
 
 /**
  * Render a report to a data payload for preview / PDF. Accepts a saved
@@ -10,6 +11,8 @@ import { NextResponse } from "next/server";
  * designer can preview before saving. Computes each widget's data server-side.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "reports_export");
+
   const { adAccountId, adAccountName, templateId, template } = await req.json();
   if (!adAccountId) throw new AppError("adAccountId required", 400);
 

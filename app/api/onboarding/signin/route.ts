@@ -5,6 +5,7 @@ import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { JWT_SECRET } from "@/utils/variableConstant";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { verifyRecaptcha } from "@/lib/auth/recaptcha";
 import { decryptSecret } from "@/lib/crypto";
 import { verifyTotp, hashBackupCode } from "@/lib/totp";
 import { redis } from "@/lib/redis";
@@ -19,10 +20,27 @@ async function generateJWT(payload: any) {
 
 export async function POST(request: Request) {
   try {
-    const { email, password, code } = await request.json();
+    const { email, password, code, recaptchaToken } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
+    }
+
+    // The sign-in form renders a reCAPTCHA and sends this token; before this it
+    // was never checked, so the widget was decorative.
+    //
+    // Verified on the CREDENTIAL step only (no `code` yet). The two-factor step
+    // re-POSTs this same route with the same token from React state, and
+    // reCAPTCHA tokens are single-use — re-verifying would fail as
+    // `timeout-or-duplicate` and make 2FA sign-in impossible. Checking the
+    // password step is where it belongs anyway: that is the step exposed to
+    // automated credential stuffing. Reaching the 2FA step already requires a
+    // correct password, and the rate limit below covers code guessing.
+    if (!code) {
+      const captcha = await verifyRecaptcha(recaptchaToken, clientIp(request));
+      if (!captcha.ok) {
+        return NextResponse.json({ error: captcha.error }, { status: captcha.status });
+      }
     }
 
     // Throttle credential-stuffing / brute force. Headroom (15/10min) because the

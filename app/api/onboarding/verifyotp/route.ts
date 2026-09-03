@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { verifyRecaptcha } from "@/lib/auth/recaptcha";
+import { clientIp } from "@/lib/rateLimit";
 import { redis } from "@/lib/redis";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -15,18 +17,9 @@ const bodySchema = z.object({
 export async function POST(req: Request) {
   try {
     const { otp, recaptchaToken } = bodySchema.parse(await req.json());
-    if (recaptchaToken) {
-      const recaptchaResponse = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
-        { method: "POST" }
-      );
-      const recaptchaData = await recaptchaResponse.json();
-      if (!recaptchaData.success) {
-        return NextResponse.json(
-          { error: "Invalid reCAPTCHA" },
-          { status: 400 }
-        );
-      }
+    const captcha = await verifyRecaptcha(recaptchaToken, clientIp(req));
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error }, { status: captcha.status });
     }
     const nextCookie = await cookies();
     const checktoken = nextCookie.get("token")?.value;

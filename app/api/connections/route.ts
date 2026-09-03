@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError, adsFetchWithConnection } from "@/lib/openai/client";
 import { sealApiKey } from "@/lib/openai/credentials";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { requireAdAccountSlot } from "@/lib/billing/entitlements";
 import type { AdAccount } from "@/lib/openai/types";
 import type { OpenAiAdsConnection } from "@prisma/client";
 
@@ -104,6 +105,20 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
   const existing = await prisma.openAiAdsConnection.findFirst({
     where: { userId, adAccountId: account.id },
   });
+
+  // Enforce the plan's ad-account limit — this is the meter the price is set
+  // against, so it has to bind here or the pricing page is decorative.
+  //
+  // Checked only for a genuinely NEW account. Re-pasting a key for an account
+  // already connected is a credential rotation, and a customer at their limit
+  // must always be able to rotate a key they already own.
+  //
+  // Deliberately after the /ad_account call: the account id is what tells us
+  // whether this is new or a rotation, and it only exists once OpenAI has
+  // validated the key.
+  if (!existing) {
+    await requireAdAccountSlot(userId);
+  }
 
   const data = {
     userId,

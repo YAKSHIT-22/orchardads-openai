@@ -58,8 +58,14 @@ const Page = () => {
     handleCaptchaSubmission(token);
   };
 
+  /**
+   * reCAPTCHA tokens are single-use: once the server has verified one, sending
+   * it again fails as `timeout-or-duplicate`. Reset the widget AND drop the
+   * token so the next attempt carries a fresh one.
+   */
   function handleExpired() {
     setIsVerified(false);
+    setrecaptchaToken(undefined);
     recaptchaRef.current?.reset();
   }
 
@@ -91,12 +97,15 @@ const Page = () => {
       const serverMsg = axios.isAxiosError(e) ? e.response?.data?.error : undefined;
       if (axios.isAxiosError(e) && e.response?.data?.twoFactorRequired) {
         // A wrong code came back — stay on the 2FA step, show the real reason.
+        // Deliberately no captcha reset: the 2FA step doesn't send one.
         setTwoFaRequired(true);
         toast.error(serverMsg || "Invalid authentication code");
         return;
       }
       // Prefer the server's actual message (invalid credentials, rate-limit with
       // retry time, missing fields…); fall back only when there isn't one.
+      // A credential-step failure spent the token — force a fresh tick.
+      handleExpired();
       if (serverMsg) {
         toast.error(serverMsg);
       } else if (axios.isAxiosError(e) && e.response?.status === 401) {

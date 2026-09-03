@@ -2,6 +2,7 @@ import { redis } from "@/lib/redis";
 import { SEARCH_GEO_LOCATIONS } from "@/utils/redisExpire";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
 import { GeoService } from "@/lib/openai/services";
+import { requireFeature } from "@/lib/billing/entitlements";
 import { NextResponse } from "next/server";
 
 /**
@@ -13,6 +14,8 @@ import { NextResponse } from "next/server";
  * limit shared with the customer's other tools.
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  await requireFeature(userId, "locations");
+
   const { adAccountId, q, limit } = await req.json().catch(() => ({}));
   if (!adAccountId) throw new AppError("adAccountId required", 400);
 

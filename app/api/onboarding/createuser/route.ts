@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { verifyRecaptcha } from "@/lib/auth/recaptcha";
+import { clientIp } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -8,20 +10,9 @@ export async function POST(request: Request) {
 try {
     const { name, email, password, recaptchaToken } = await request.json();
 
-    // When reCAPTCHA is configured, the token is REQUIRED — otherwise a caller
-    // could bypass the check simply by omitting the field.
-    if (process.env.RECAPTCHA_SECRET_KEY) {
-      if (!recaptchaToken) {
-        return NextResponse.json({ error: "reCAPTCHA verification required" }, { status: 400 });
-      }
-      const recaptchaResponse = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
-        { method: "POST" }
-      );
-      const recaptchaData = await recaptchaResponse.json();
-      if (!recaptchaData.success) {
-        return NextResponse.json({ error: "Invalid reCAPTCHA" }, { status: 400 });
-      }
+    const captcha = await verifyRecaptcha(recaptchaToken, clientIp(request));
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error }, { status: captcha.status });
     }
 
     if (!name || !email || !password) {

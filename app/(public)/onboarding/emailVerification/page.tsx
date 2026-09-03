@@ -49,8 +49,14 @@ const Page = () => {
     handleCaptchaSubmission(token);
   };
 
+  /**
+   * reCAPTCHA tokens are single-use: once the server has verified one, sending
+   * it again fails as `timeout-or-duplicate`. Reset the widget AND drop the
+   * token so the next attempt carries a fresh one.
+   */
   function handleExpired() {
     setIsVerified(false);
+    setrecaptchaToken(undefined);
     recaptchaRef.current?.reset();
   }
 
