@@ -147,3 +147,36 @@ Before a first customer: fund a real ad account, run the full loop
 | [`docs/business/india-company-setup.md`](docs/business/india-company-setup.md) | Operating from India — research notes, not advice |
 | [`docs/deployment/india-architecture.md`](docs/deployment/india-architecture.md) | Deployment from MVP to 10,000 customers |
 | [`docs/reference/handyads-port-map.md`](docs/reference/handyads-port-map.md) | What was ported, reshaped, and deleted |
+
+---
+
+## Deploying
+
+Live at **https://orchardads.in** (Vercel, `iad1` — us-east, close to
+`api.ads.openai.com`; the CDN handles user proximity).
+
+### Migrations are NOT run at build time
+
+The build is `prisma generate && next build`. Migrations run as a separate,
+deliberate step:
+
+```bash
+DATABASE_URL="<production url>" npx prisma migrate deploy
+```
+
+This is on purpose. A build environment shouldn't hold write credentials to the
+production database, and a schema change shouldn't be able to apply itself as a
+side effect of someone pushing a commit. Running it by hand means a migration is
+something a person decided to do.
+
+### Required environment variables
+
+| Variable | Needed for |
+| --- | --- |
+| `DATABASE_URL` | Everything. Without it the marketing pages render and every app route 500s |
+| `JWT_SECRET` | Sessions |
+| `ENCRYPTION_KEY` | Customer API keys at rest. **Production refuses to boot without it** |
+| `REDIS_URL` | Rate-limit governor, sync locks, report cache. Optional, but without it the governor is a no-op — and OpenAI enforces limits per ad account *and* per IP |
+| `ANTHROPIC_API_KEY` | Ask and setup suggestions. Those features report themselves unconfigured without it |
+| `SMTP_*` | Verification email, alerts, scheduled reports |
+| `CRON_SECRET` | Guards `/api/cron/*` |
