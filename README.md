@@ -1,4 +1,5 @@
-# OrchardAds
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | **Run it against the real API** — the checklist to pass before billing anyone |
+| [`docs/DECISION.md`](docs/DECISION.md) | Should this be built? Scored, with the case against |# OrchardAds
 
 An AI optimization layer for **OpenAI Ads** — the ad platform inside ChatGPT.
 
