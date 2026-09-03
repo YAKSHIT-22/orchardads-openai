@@ -1,0 +1,901 @@
+// OrchardAds — AI optimization layer for OpenAI Ads (ChatGPT Ads).
+//
+// Ported from the Apple Search Ads schema: the platform-agnostic half (users,
+// 2FA, alerts, reports, strategies, shared dashboards, audits) is unchanged in
+// shape; the platform half is rebuilt around OpenAI Ads concepts.
+//
+// Vocabulary map from the old schema:
+//   AppleConnection  -> OpenAiAdsConnection   (bearer API key, one per ad account)
+//   orgId            -> adAccountId           ("adacct_...")
+//   CachedKeyword    -> deleted               (the OpenAI Ads API has no keywords)
+//   installs/taps    -> conversions/clicks
+//
+// Money: the OpenAI Ads API speaks *micros* (millionths of a currency unit).
+// We store micros as BigInt everywhere and convert only at the display edge.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum VerifiedStatus {
+  UNVERIFIED
+  VERIFIED
+  BLOCKED
+  SUSPENDED
+}
+
+model User {
+  id       String         @id @default(cuid())
+  name     String
+  email    String         @unique
+  password String
+  role     Role           @default(USER)
+  verified VerifiedStatus @default(UNVERIFIED)
+
+  connections OpenAiAdsConnection[]
+
+  // 2FA (TOTP). Secret is encrypted at rest; pendingSecret holds an unconfirmed
+  // secret during enrollment until the user verifies a code. Backup codes are
+  // stored hashed.
+  twoFactorEnabled     Boolean  @default(false)
+  twoFactorSecret      String?  @db.Text
+  twoFactorPending     String?  @db.Text
+  twoFactorBackupCodes String[]
+
+  sharedDashboards SharedDashboard[]
+  savedAudits      SavedAudit[]
+  alerts           Alert[]
+  strategies       Strategy[]
+  reportTemplates  ReportTemplate[]
+  recommendations  Recommendation[]
+  auditLogs        AuditLog[]
+  subscription     Subscription?
+  usageRecords     UsageRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── Billing ─────────────────────────────────────────────────────────────────
+
+enum PlanId {
+  trial
+  starter
+  growth
+  scale
+  expired
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  canceled
+  expired
+}
+
+/**
+ * One subscription per user.
+ *
+ * Every new user starts on a 14-day trial with EVERY tool unlocked (no card) —
+ * see lib/billing/plans.ts for why that is deliberate rather than generous.
+ * When it lapses the account becomes read-only rather than locked: dashboards,
+ * diagnostics and reports keep working; writes and AI stop.
+ *
+ * `provider` is intentionally not hard-coded to one processor. India-domestic
+ * billing and international billing are likely to use different rails
+ * (Razorpay vs a merchant of record), and that decision is not made yet.
+ */
+model Subscription {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  planId PlanId             @default(trial)
+  status SubscriptionStatus @default(trialing)
+
+  trialStartedAt DateTime  @default(now())
+  trialEndsAt    DateTime?
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+
+  /** "razorpay" | "paddle" | "manual" — resolved at checkout, not at signup. */
+  provider           String?
+  providerCustomerId String?
+  providerSubId      String?
+
+  /** Currency the customer is billed in; drives which price ladder applies. */
+  currency String @default("USD")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, trialEndsAt])
+}
+
+/**
+ * Metered usage, one row per user per meter per calendar month.
+ *
+ * Only things that cost us real money are metered: AI analyses (tokens) and
+ * actions (writes against a customer's live ad account). Everything else is
+ * limited by plan but not counted, because counting it would only create the
+ * temptation to charge for it.
+ */
+model UsageRecord {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  /** "ai_analyses" | "actions" | "scheduled_reports" */
+  meter String
+  /** YYYY-MM in UTC. */
+  period String
+
+  count Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, meter, period])
+  @@index([userId, period])
+}
+
+// ── Platform connection ─────────────────────────────────────────────────────
+
+enum ConnectionStatus {
+  ACTIVE
+  INVALID // upstream returned 401 — the advertiser revoked or rotated the key
+  DISABLED // user-disabled, credentials retained
+}
+
+// One OpenAI Ads API key. Each key is scoped by OpenAI to exactly ONE ad
+// account, so a customer with several accounts creates several connections.
+// `apiKey` is AES-256-GCM encrypted at rest (lib/crypto) and is never returned
+// to a browser — only `apiKeyLast4` is ever displayed.
+//
+// There is no OAuth here: the OpenAPI spec defines an `AdsOAuth` flow, but no
+// client registration is published, so the shipped provider is BYO API key.
+// See docs/research/openai-ads-api-analysis.md §0.2.
+model OpenAiAdsConnection {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  label String?
+
+  apiKey      String @db.Text // encrypted (enc:v1:...)
+  apiKeyLast4 String
+
+  // Identity resolved from GET /ad_account at connect time.
+  adAccountId   String
+  adAccountName String?
+  accountUrl    String?
+  currencyCode  String  @default("USD")
+  timezone      String  @default("UTC")
+
+  // review.status / review.reason from GET /ad_account — an account whose brand
+  // review is not approved cannot serve ads at all, so we surface it first.
+  reviewStatus String?
+  reviewReason String?
+  accountStatus String?
+
+  // Modelled revenue input. The OpenAI Ads API returns conversion COUNTS only —
+  // there is no revenue or conversion-value field anywhere in the read API — so
+  // revenue and ROAS are computed as `conversions * conversionValueMicros`.
+  // Null means "not configured": the UI shows a CTA instead of a number, never
+  // a zero and never a guess.
+  conversionValueMicros BigInt?
+
+  // Capability flags discovered from live responses (403/404 on gated
+  // endpoints). Cached so the UI can explain *why* a feature is unavailable.
+  // { bulkApi, conversionPixels, conversionApiKeys, conversionBidding,
+  //   brandUpdates, insightsSegments }
+  capabilities Json?
+
+  status    ConnectionStatus @default(ACTIVE)
+  lastError String?
+
+  lastValidatedAt DateTime?
+  lastSyncAt      DateTime?
+
+  campaigns  CachedCampaign[]
+  adGroups   CachedAdGroup[]
+  ads        CachedAd[]
+  syncRuns   SyncRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, adAccountId])
+  @@index([userId])
+}
+
+// ── Synced platform entities ────────────────────────────────────────────────
+
+model CachedCampaign {
+  id           String              @id @default(cuid())
+  connection   OpenAiAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  userId       String
+  adAccountId  String
+
+  externalId String // "cmpn_..."
+  name       String
+  status     String // active | paused | archived
+
+  biddingType      String? // impressions | clicks | conversions
+  objective        String? // reach | clicks | conversions
+  billingEventType String?
+  mode             String? // product_feed | business_agent | null
+
+  lifetimeBudgetMicros BigInt?
+  dailyBudgetMicros    BigInt?
+
+  startTime DateTime?
+  endTime   DateTime?
+
+  // include[]=serving_issues -> ["campaign_budget_exhausted", ...]
+  servingIssues String[]
+
+  rawData   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adGroups CachedAdGroup[]
+
+  @@unique([connectionId, externalId])
+  @@index([userId, adAccountId])
+  @@index([connectionId, status])
+}
+
+model CachedAdGroup {
+  id           String              @id @default(cuid())
+  connection   OpenAiAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  campaign     CachedCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId   String
+  userId       String
+  adAccountId  String
+
+  externalId String // "adgrp_..."
+  name       String
+  status     String
+
+  // bidding_config
+  billingEventType String? // impression | click
+  maxBidMicros     BigInt?
+
+  // The OpenAI Ads analogue of keywords: free-text targeting hints.
+  contextHints String[]
+
+  servingIssues String[]
+
+  rawData   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ads CachedAd[]
+
+  @@unique([connectionId, externalId])
+  @@index([userId, adAccountId])
+  @@index([campaignId, status])
+}
+
+model CachedAd {
+  id           String              @id @default(cuid())
+  connection   OpenAiAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  adGroup      CachedAdGroup       @relation(fields: [adGroupId], references: [id], onDelete: Cascade)
+  adGroupId    String
+  userId       String
+  adAccountId  String
+
+  externalId String // "ad_..."
+  name       String
+  status     String
+
+  // creative (ConversationalBottomOtmSpec)
+  creativeType String?
+  title        String?
+  body         String?
+  targetUrl    String?
+  imageUrl     String?
+  fileId       String?
+
+  // review_status ∈ in_review | rejected | approved, review.reason is an enum
+  // dominated by fixable landing-page/crawler failures — this powers Review Doctor.
+  reviewStatus     String?
+  reviewReason     String?
+  reviewScreenshot String?
+
+  servingIssues String[]
+
+  rawData   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([connectionId, externalId])
+  @@index([userId, adAccountId])
+  @@index([adGroupId, status])
+  @@index([connectionId, reviewStatus])
+}
+
+// Daily fact table joining the two insight sources.
+//
+//   delivery  : GET /{scope}/insights           -> impressions, clicks, spend, ctr, cpc, cpm
+//   conversion: POST /conversions/insights      -> conversions (click-through only)
+//
+// Delivery supports hourly granularity, conversions only daily — so the joined
+// grain is DAILY and CPA/CVR exist only at that grain. Revenue is never stored:
+// it is derived at read time from the connection's conversionValueMicros.
+model MetricFact {
+  id          String @id @default(cuid())
+  userId      String
+  adAccountId String
+
+  entityType String // ACCOUNT | CAMPAIGN | ADGROUP | AD
+  entityId   String // external id, or the ad account id for ACCOUNT rows
+  date       DateTime @db.Date
+
+  impressions BigInt @default(0)
+  clicks      BigInt @default(0)
+  spendMicros BigInt @default(0)
+
+  conversions            Int @default(0)
+  viewThroughConversions Int @default(0)
+
+  // Optional single-dimension breakdown (segments[] allows exactly one).
+  //
+  // Empty string, NOT null, for "no breakdown". These columns are part of the
+  // unique index below, and Postgres treats NULLs as distinct — a nullable
+  // column here would silently defeat the dedupe and let every sync insert a
+  // duplicate row for the same entity-day.
+  segmentType  String @default("") // "" | country | device | product
+  segmentValue String @default("")
+
+  currencyCode String   @default("USD")
+  syncedAt     DateTime @default(now())
+
+  @@unique([adAccountId, entityType, entityId, date, segmentType, segmentValue])
+  @@index([userId, adAccountId, date])
+  @@index([adAccountId, entityType, date])
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+model SyncRun {
+  id           String              @id @default(cuid())
+  connection   OpenAiAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String
+  userId       String
+  adAccountId  String
+
+  status SyncStatus @default(RUNNING)
+  trigger String    @default("manual") // manual | cron | queue
+
+  campaignsSynced Int @default(0)
+  adGroupsSynced  Int @default(0)
+  adsSynced       Int @default(0)
+  factsWritten    Int @default(0)
+  apiCalls        Int @default(0)
+
+  error       String?
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+
+  @@index([connectionId, startedAt])
+  @@index([userId, adAccountId, startedAt])
+}
+
+// Cached upstream responses (report payloads etc.) keyed by a deterministic
+// cache key, with a TTL. Same role as the old CachedReport.
+model CachedReport {
+  id          String   @id @default(cuid())
+  userId      String
+  adAccountId String
+  reportType  String
+  cacheKey    String   @unique
+  data        Json
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, adAccountId, reportType])
+}
+
+// ── Recommendations, risk and execution ─────────────────────────────────────
+
+enum RecommendationKind {
+  SERVING_ISSUE // an entity is blocked from delivering
+  REVIEW_ISSUE // an ad is rejected / stuck in review
+  WASTED_SPEND // spend with no conversions
+  BUDGET_EXHAUSTED // lifetime budget consumed / pacing out early
+  UNDERFUNDED_WINNER // strong CPA, budget-constrained
+  OVERSPENDING_LOSER // CPA far above account median
+  BID_TOO_HIGH
+  BID_TOO_LOW
+  CREATIVE_FATIGUE // CTR decaying on a stable creative
+  TRACKING_GAP // conversion campaign with no active source
+  ORPHANED_ENTITY // active child under a paused/ended parent
+  PACING_RISK
+}
+
+enum RiskBand {
+  ADVISORY // nothing to execute — diagnose and hand over the fix
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RecommendationStatus {
+  OPEN
+  APPROVED
+  APPLIED
+  DISMISSED
+  EXPIRED
+  FAILED
+}
+
+// A single ranked, explained proposal. Produced by the deterministic engine
+// (pure TypeScript over MetricFact) — the LLM only narrates it, never invents
+// the numbers. See docs/DECISION.md.
+model Recommendation {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  adAccountId  String
+  connectionId String
+
+  kind   RecommendationKind
+  status RecommendationStatus @default(OPEN)
+
+  entityType String // CAMPAIGN | ADGROUP | AD | ACCOUNT
+  entityId   String
+  entityName String
+
+  title     String
+  reasoning String  @db.Text
+  // Deterministic evidence the engine used — every number in the narrative must
+  // be traceable to a key in here.
+  evidence  Json
+
+  // Proposed change (null for ADVISORY recommendations).
+  field        String? // budget.lifetime_spend_limit_micros | bidding_config.max_bid_micros | status
+  currentValue String?
+  proposedValue String?
+  changePercent Float?
+
+  // Impact estimate, in account currency micros. Signed: negative = saving.
+  estimatedImpactMicros BigInt?
+  confidence            Float? // 0..1, gated on sample size — never fabricated
+  riskBand              RiskBand @default(ADVISORY)
+  approvalRequired      Boolean  @default(true)
+
+  // Deterministic dedupe so a standing condition does not re-notify every run.
+  dedupeKey String
+
+  action ProposedAction?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+
+  @@unique([userId, adAccountId, dedupeKey])
+  @@index([userId, adAccountId, status])
+  @@index([userId, adAccountId, kind])
+}
+
+enum ActionStatus {
+  PROPOSED
+  APPROVED
+  EXECUTING
+  EXECUTED
+  FAILED
+  ROLLED_BACK
+  REJECTED
+}
+
+// The executable half of a recommendation. Nothing writes to a customer's ad
+// account without one of these rows, and every row carries the pre-write state
+// so a rollback is a replay, not a guess.
+model ProposedAction {
+  id String @id @default(cuid())
+
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  recommendationId String         @unique
+
+  userId       String
+  adAccountId  String
+  connectionId String
+
+  actionType String // UPDATE_CAMPAIGN_BUDGET | UPDATE_ADGROUP_BID | PAUSE_ENTITY | ACTIVATE_ENTITY
+  entityType String
+  entityId   String
+
+  payload Json // exact request body sent upstream
+
+  // Captured with a GET immediately before the write.
+  beforeState Json?
+  afterState  Json?
+
+  status ActionStatus @default(PROPOSED)
+
+  // Idempotency: one logical action executes at most once.
+  idempotencyKey String @unique
+
+  approvedBy String?
+  approvedAt DateTime?
+  executedAt DateTime?
+  rolledBackAt DateTime?
+  error      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, adAccountId, status])
+}
+
+// Every write against a customer ad account, plus every security-relevant app
+// event. Append-only; never updated, never deleted.
+model AuditLog {
+  id     String  @id @default(cuid())
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  adAccountId String?
+
+  action  String // CONNECTION_CREATED | ACTION_EXECUTED | ACTION_ROLLED_BACK | ...
+  outcome String @default("SUCCESS") // SUCCESS | FAILURE
+
+  entityType String?
+  entityId   String?
+  entityName String?
+
+  before Json?
+  after  Json?
+
+  // Never contains credentials: the client redacts Authorization headers before
+  // anything reaches this table.
+  meta      Json?
+  requestId String?
+  ip        String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([adAccountId, createdAt])
+  @@index([action, createdAt])
+}
+
+// ── Audits (saved inspector configurations) ─────────────────────────────────
+
+model SavedAudit {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  adAccountId   String
+  adAccountName String?
+  name          String
+  description   String?
+  widgets       String[]
+
+  lastRunAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// A public, read-only, link-shareable view of an account dashboard. Viewers open
+// /shared/{token} without an account; the public API serves ONLY this share's
+// fixed scope using the owner's credentials server-side. Revocable via
+// `enabled` and optional `expiresAt`.
+model SharedDashboard {
+  id     String @id @default(cuid())
+  token  String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  adAccountId   String
+  adAccountName String?
+
+  title       String
+  description String?
+  dateRange   String   @default("30d") // 7d | 14d | 30d | 90d
+  widgets     String[]
+
+  enabled      Boolean   @default(true)
+  expiresAt    DateTime?
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ── Orchard Watch (alerts & monitoring) ─────────────────────────────────────
+
+enum AlertKind {
+  METRIC // threshold or period-over-period change on a metric
+  BUDGET // pacing vs the campaign budget
+  ANOMALY // statistical spike/drop vs a rolling baseline (z-score)
+  SERVING // an entity stopped being able to deliver
+  REVIEW // an ad was rejected or is stuck in review
+}
+
+enum AlertScope {
+  ACCOUNT
+  CAMPAIGN
+  ADGROUP
+  AD
+}
+
+// Only metrics the OpenAI Ads API can actually produce. ROAS and REVENUE are
+// modelled from the connection's conversionValueMicros and are unavailable
+// until that is configured.
+enum AlertMetric {
+  SPEND
+  IMPRESSIONS
+  CLICKS
+  CTR
+  CPC
+  CPM
+  CONVERSIONS
+  CPA
+  CONVERSION_RATE
+  REVENUE // modelled
+  ROAS // modelled
+}
+
+enum AlertComparator {
+  ABOVE // value > threshold
+  BELOW // value < threshold
+  CHANGE_UP // % increase vs prior period >= threshold
+  CHANGE_DOWN // % decrease vs prior period >= threshold
+}
+
+enum AlertAction {
+  NOTIFY
+  PAUSE
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertEventStatus {
+  NEW
+  READ
+  SNOOZED
+  DISMISSED
+}
+
+model Alert {
+  id            String  @id @default(cuid())
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  adAccountId   String
+  adAccountName String?
+
+  name         String
+  kind         AlertKind
+  scope        AlertScope @default(CAMPAIGN)
+  campaignId   String?
+  campaignName String?
+
+  metric            AlertMetric? // METRIC/ANOMALY only
+  comparator        AlertComparator? // METRIC only
+  threshold         Float? // ABOVE/BELOW absolute · CHANGE_* percent · BUDGET pace %
+  comparePeriodDays Int              @default(7)
+  lookbackDays      Int              @default(7)
+  offsetDays        Int              @default(0) // ignore the most recent N days (conversion lag)
+  sensitivity       Float? // ANOMALY z-score threshold (e.g. 2.5)
+
+  action      AlertAction   @default(NOTIFY)
+  severity    AlertSeverity @default(WARNING)
+  notifyEmail Boolean       @default(false)
+
+  enabled         Boolean   @default(true)
+  isDefault       Boolean   @default(false)
+  lastRunAt       DateTime?
+  lastTriggeredAt DateTime?
+
+  events    AlertEvent[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([userId, adAccountId])
+}
+
+model AlertEvent {
+  id          String @id @default(cuid())
+  alert       Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  alertId     String
+  userId      String
+  adAccountId String
+
+  entityType String
+  entityId   String
+  entityName String
+
+  metric      String
+  value       Float
+  baseline    Float?
+  threshold   Float?
+  changePct   Float?
+  currency    String        @default("USD")
+  severity    AlertSeverity @default(WARNING)
+  message     String
+  actionTaken String        @default("NOTIFY") // NOTIFY | PAUSED | PAUSE_FAILED
+
+  status       AlertEventStatus @default(NEW)
+  snoozedUntil DateTime?
+
+  // One event per alert+entity+day so an ongoing breach doesn't spam every run.
+  dedupeKey String
+  createdAt DateTime @default(now())
+
+  @@unique([alertId, entityId, dedupeKey])
+  @@index([userId, adAccountId, status])
+  @@index([userId, adAccountId, createdAt])
+}
+
+// ── Reports ─────────────────────────────────────────────────────────────────
+
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model ReportTemplate {
+  id            String  @id @default(cuid())
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  adAccountId   String
+  adAccountName String?
+
+  name        String
+  description String?
+  cover       Json?
+  dateRange   String  @default("30d")
+  widgets     Json
+
+  schedules ReportSchedule[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId, adAccountId])
+}
+
+model ReportSchedule {
+  id           String          @id @default(cuid())
+  userId       String
+  adAccountId  String
+  name         String
+  reportType   String          @default("campaign")
+  template     ReportTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId   String?
+  campaignId   String?
+  adGroupId    String?
+  lookbackDays Int             @default(7)
+  frequency    ReportFrequency @default(WEEKLY)
+  recipients   String
+  enabled      Boolean         @default(true)
+  lastSentAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([userId, adAccountId])
+  @@index([templateId])
+}
+
+// ── Autopilot (rule engine) ─────────────────────────────────────────────────
+// A Strategy is a saved rule set run against one scope. Each run evaluates its
+// rules over MetricFact rows and produces suggestions; the user applies them,
+// or automation applies/notifies on a schedule.
+//
+// Launch policy (docs/DECISION.md): `autoApply` is available only for LOW-risk
+// action types within guardrails, and never for archive or account-level state.
+
+enum StrategyScope {
+  CAMPAIGN
+  ADGROUP
+  AD
+  GEO // via the `country` insights segment
+}
+
+enum StrategyFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum StrategyRunMode {
+  PREVIEW // computed suggestions, nothing applied
+  APPLY // user applied selected suggestions
+  AUTO // scheduled automation run
+}
+
+model Strategy {
+  id            String  @id @default(cuid())
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  adAccountId   String
+  adAccountName String?
+
+  name        String
+  description String?
+  scope       StrategyScope
+
+  campaignIds String[]
+
+  lookbackDays Int @default(30)
+
+  // [{ name, match:"ALL"|"ANY", conditions:[{metric,operator,value}], action:{type,...} }]
+  rules Json
+
+  automated   Boolean           @default(false)
+  frequency   StrategyFrequency @default(WEEKLY)
+  autoApply   Boolean           @default(false)
+  notifyEmail Boolean           @default(false)
+
+  // Guardrails enforced by the risk engine on every produced action.
+  maxChangePercent Float @default(25)
+  maxActionsPerRun Int   @default(20)
+  cooldownHours    Int   @default(24)
+
+  enabled   Boolean   @default(true)
+  lastRunAt DateTime?
+  nextRunAt DateTime?
+
+  runs      StrategyRun[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId, adAccountId])
+}
+
+model StrategyRun {
+  id          String   @id @default(cuid())
+  strategy    Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  strategyId  String
+  userId      String
+  adAccountId String
+
+  mode         StrategyRunMode
+  matchedCount Int             @default(0)
+  appliedCount Int             @default(0)
+  failedCount  Int             @default(0)
+  suggestions  Json?
+  error        String?
+  createdAt    DateTime        @default(now())
+
+  @@index([strategyId, createdAt])
+  @@index([userId, adAccountId, createdAt])
+}

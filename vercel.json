@@ -1,0 +1,13 @@
+{
+  "buildCommand": "prisma generate && prisma db push && next build",
+  "crons": [
+    {
+      "path": "/api/cron/evaluate-alerts",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/reports-and-strategies",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
