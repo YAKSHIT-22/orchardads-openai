@@ -1,5 +1,8 @@
 {
-  "buildCommand": "prisma generate && prisma db push && next build",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "framework": "nextjs",
+  "regions": ["iad1"],
   "crons": [
     {
       "path": "/api/cron/evaluate-alerts",
@@ -9,5 +12,16 @@
       "path": "/api/cron/reports-and-strategies",
       "schedule": "0 8 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/cron/**/*.ts": {
+      "maxDuration": 300
+    },
+    "app/api/ai/ask/route.ts": {
+      "maxDuration": 120
+    },
+    "app/api/reports/**/*.ts": {
+      "maxDuration": 60
+    }
+  }
 }
