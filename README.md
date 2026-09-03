@@ -1,5 +1,4 @@
-| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | **Run it against the real API** — the checklist to pass before billing anyone |
-| [`docs/DECISION.md`](docs/DECISION.md) | Should this be built? Scored, with the case against |# OrchardAds
+# OrchardAds
 
 An AI optimization layer for **OpenAI Ads** — the ad platform inside ChatGPT.
 
@@ -138,6 +137,7 @@ Before a first customer: fund a real ad account, run the full loop
 
 | | |
 | --- | --- |
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | **Run it against the real API** — the checklist to pass before billing anyone |
 | [`docs/DECISION.md`](docs/DECISION.md) | Should this be built? Scored, with the case against |
 | [`docs/research/openai-ads-api-analysis.md`](docs/research/openai-ads-api-analysis.md) | Full capability map, every endpoint, verified vs unknown |
 | [`docs/research/BLOCKERS.md`](docs/research/BLOCKERS.md) | RED / YELLOW / GREEN, with workarounds |
