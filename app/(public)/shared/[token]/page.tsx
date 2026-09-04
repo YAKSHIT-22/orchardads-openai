@@ -420,7 +420,6 @@ export default function SharedDashboardPage() {
   const hasTrend = widgets.includes("trend");
   const hasComparison = widgets.includes("comparison");
   const hasPacing = widgets.includes("budgetPacing");
-  const hasPlacements = widgets.includes("topPlacements");
   const hasProjected = widgets.includes("projectedSpend");
   const hasPerfChange = widgets.includes("performanceChange");
 
@@ -528,13 +527,8 @@ export default function SharedDashboardPage() {
             )}
 
             {/* Insight cards side by side. */}
-            {(hasPacing || hasPlacements) && (
-              <div
-                className={cn(
-                  "grid grid-cols-1 gap-5 min-w-0",
-                  hasPacing && hasPlacements && "lg:grid-cols-2"
-                )}
-              >
+            {hasPacing && (
+              <div className="grid grid-cols-1 gap-5 min-w-0">
                 {hasPacing && (
                   <BudgetPacingCard
                     pacing={pacing}

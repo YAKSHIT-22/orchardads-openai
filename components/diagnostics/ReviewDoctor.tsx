@@ -42,7 +42,7 @@ import type { AdReportRow, ReportData } from "@/types/reportsDetails";
 
 type Group = { reason: ReviewReasonInfo; ads: AdReportRow[]; spendMicros: number };
 
-export default function ReviewDoctorPage() {
+export function ReviewDoctor() {
   const { adAccountId, currency } = adAccountStore();
   const [open, setOpen] = useState<string | null>(null);
 

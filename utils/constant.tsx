@@ -53,16 +53,13 @@ export const menuItems: MenuItem[] = [
     href: "/tools/dashboard",
   },
   {
-    label: "Serving Doctor",
+    // Serving and review were separate items, which split one question ("why
+    // isn't this running?") across two screens. A rejected ad is itself a
+    // serving problem, so they are tabs of one tool now.
+    label: "Diagnostics",
     icon: <Stethoscope size={18} />,
-    href: "/tools/serving-health",
+    href: "/tools/diagnostics",
     feature: "serving_doctor",
-  },
-  {
-    label: "Review Doctor",
-    icon: <ClipboardCheck size={18} />,
-    href: "/tools/review-health",
-    feature: "review_doctor",
   },
   {
     label: "Ask",

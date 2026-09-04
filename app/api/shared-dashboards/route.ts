@@ -11,7 +11,7 @@ const DATE_RANGES: string[] = SHARE_DATE_RANGES;
 // Deep-dive (keywords/search terms) and PPC investigator are intentionally
 // excluded from public shares.
 const WIDGET_KEYS = [
-  "trend", "comparison", "topCampaigns", "topPlacements", "budgetPacing",
+  "trend", "comparison", "topCampaigns", "budgetPacing",
   "projectedSpend", "performanceChange",
 ];
 

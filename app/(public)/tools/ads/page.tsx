@@ -120,7 +120,7 @@ export default function AdsPage() {
           <p className="text-sm text-muted-foreground mt-0.5">
             Last {days} days.{" "}
             {counts.rejected > 0 ? (
-              <Link href="/tools/review-health" className="text-amber-600 hover:underline font-medium">
+              <Link href="/tools/diagnostics?tab=review" className="text-amber-600 hover:underline font-medium">
                 {counts.rejected} rejected — see why
               </Link>
             ) : (

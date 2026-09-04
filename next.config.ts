@@ -37,6 +37,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Serving Doctor and Review Doctor merged into /tools/diagnostics. These are
+  // permanent: the old paths are gone, and people bookmark tools.
+  async redirects() {
+    return [
+      { source: "/tools/serving-health", destination: "/tools/diagnostics", permanent: true },
+      { source: "/tools/review-health", destination: "/tools/diagnostics?tab=review", permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [
       {

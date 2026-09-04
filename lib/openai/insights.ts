@@ -227,8 +227,11 @@ export async function getConversions(
     time_ranges: [enc(opts.timeRange)],
     time_granularity: opts.daily ? "daily" : "none",
     ...(opts.breakdown ? { breakdown: opts.breakdown } : {}),
-    ...(opts.entityIds?.length ? { entity_ids: opts.entityIds } : {}),
-    group_by_entity: true,
+    // Same rule as getConversionsWith: group_by_entity is only legal alongside
+    // entity_ids, and a 400 here reads downstream as "zero conversions".
+    ...(opts.entityIds?.length
+      ? { entity_ids: opts.entityIds, group_by_entity: true }
+      : {}),
     include_zero_rows: opts.includeZeroRows ?? true,
   });
   return res?.data ?? [];
@@ -243,12 +246,24 @@ export async function getConversionsWith(
     daily?: boolean;
   }
 ): Promise<ConversionRow[]> {
+  // VERIFIED against the live API (2026-09-04):
+  //
+  //  - `time_ranges` must be an array of JSON STRINGS even in a POST body.
+  //    Sending real objects is rejected: "expected a string, but got an object".
+  //  - `group_by_entity: true` REQUIRES `entity_ids`. Sending it without them
+  //    returns 400 "entity_ids must be provided when group_by_entity is true".
+  //
+  // That second one mattered: callers pass entityIds optionally and every call
+  // site swallows failures with `.catch(() => [])`, so an empty entity list
+  // produced a 400 that was silently read as "no conversions". Every CPA, CVR,
+  // revenue and ROAS derived from it would have been wrong rather than absent.
+  // Group by entity only when we can name the entities.
+  const grouped = Boolean(opts.entityIds?.length);
   const res = await ConversionService.insightsWith(connection, {
     aggregation_level: opts.aggregationLevel,
     time_ranges: [enc(opts.timeRange)],
     time_granularity: opts.daily ? "daily" : "none",
-    ...(opts.entityIds?.length ? { entity_ids: opts.entityIds } : {}),
-    group_by_entity: true,
+    ...(grouped ? { entity_ids: opts.entityIds, group_by_entity: true } : {}),
     include_zero_rows: true,
   });
   return res?.data ?? [];

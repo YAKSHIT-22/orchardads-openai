@@ -7,7 +7,7 @@
  * editing of a share.
  *
  * Widget keys mirror the server contract (app/api/shared-dashboards):
- * trend / comparison / topCampaigns / topPlacements / budgetPacing /
+ * trend / comparison / topCampaigns / budgetPacing /
  * projectedSpend / performanceChange.
  * KPIs are always part of a share and are not a checkbox.
  */
@@ -65,7 +65,6 @@ const WIDGET_OPTIONS: { key: string; label: string; desc: string; icon: LucideIc
   { key: "trend", label: "Performance chart", desc: "Daily trend for any metric", icon: Activity },
   { key: "comparison", label: "Metric comparison", desc: "Two metrics on a dual axis", icon: GitCompareArrows },
   { key: "topCampaigns", label: "Top campaigns", desc: "Ranked by spend with CPA", icon: Trophy },
-  { key: "topPlacements", label: "Top placements", desc: "Spend by placement", icon: Store },
   { key: "budgetPacing", label: "Budget pacing", desc: "Daily spend vs. daily budget", icon: Gauge },
   { key: "projectedSpend", label: "Projected spend", desc: "Month-end pace vs. budget target", icon: CalendarClock },
   { key: "performanceChange", label: "Performance change", desc: "vs. the previous period, with top movers", icon: TrendingUpDown },

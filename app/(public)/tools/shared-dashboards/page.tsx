@@ -63,7 +63,6 @@ const WIDGET_LABELS: Record<string, string> = {
   trend: "Performance",
   comparison: "Comparison",
   topCampaigns: "Top campaigns",
-  topPlacements: "Placements",
   budgetPacing: "Budget pacing",
   projectedSpend: "Projected spend",
   performanceChange: "Performance change",

@@ -72,7 +72,7 @@ const LEVEL_ICON = {
   Ad: Tags,
 } as const;
 
-export default function ServingDoctorPage() {
+export function ServingDoctor() {
   const { adAccountId, currency } = adAccountStore();
   const connection = useActiveConnection();
   const [open, setOpen] = useState<string | null>(null);

@@ -125,7 +125,7 @@ export default function CampaignsPage() {
           <p className="text-sm text-muted-foreground mt-0.5">
             Last {days} days.{" "}
             {blockedCount > 0 ? (
-              <Link href="/tools/serving-health" className="text-amber-600 hover:underline font-medium">
+              <Link href="/tools/diagnostics" className="text-amber-600 hover:underline font-medium">
                 {blockedCount} campaign{blockedCount === 1 ? " isn't" : "s aren't"} delivering
               </Link>
             ) : (

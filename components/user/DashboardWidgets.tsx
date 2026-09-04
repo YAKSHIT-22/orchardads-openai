@@ -6,7 +6,6 @@
  *
  *  - Top Suggestions   (serving blocks + wasted spend + budget pacing)
  *  - Budget Pacing     (spend rate vs lifetime budget — runway, not utilisation)
- *  - Top Placements    (spend by placement)
  *  - Top Campaigns     (top spenders, with ad-group drill-down tray)
  *  - Conversion Funnel (impressions -> clicks -> conversions)
  *

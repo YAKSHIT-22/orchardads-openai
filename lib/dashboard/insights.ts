@@ -141,7 +141,7 @@ export function buildSuggestions(input: {
       tone: "critical",
       title: `${blocked.length} active campaign${blocked.length === 1 ? " isn't" : "s aren't"} delivering`,
       sub: `"${blocked[0].name}" is blocked (${blocked[0].issues[0]}). Serving Doctor has the exact fix for each.`,
-      href: "/tools/serving-health",
+      href: "/tools/diagnostics",
       cta: "Open Serving Doctor",
     });
   }
