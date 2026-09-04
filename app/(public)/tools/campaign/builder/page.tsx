@@ -8,11 +8,14 @@
  * serve, and an ad group with no ad cannot serve. Both show up in Serving Doctor
  * as `campaign_has_no_ad_groups` / `ad_group_has_no_ads` — self-inflicted by the
  * old navigation. Keeping the three steps in one page makes the complete object
- * the default outcome.
+ * the default outcome, and the structure rail + inline readiness hints below
+ * surface that risk while you're still building instead of only at Review.
  *
  * The same page edits: `?campaignId=…` loads the campaign and its children, and
  * every step becomes edit-in-place. So the landing table's Edit action and the
- * New Campaign action are the same screen.
+ * New Campaign action are the same screen — the header and step 1 make clear
+ * which mode you're in, since the two have very different consequences (a save
+ * while editing applies immediately; nothing exists yet while creating).
  *
  * Each step commits on its own — the API has no transaction across these three
  * creates, so pretending otherwise would lose an ad group if step 3 failed.
@@ -20,7 +23,7 @@
  * rather than lost.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -40,6 +43,7 @@ import { ACCOUNT_LIMITS } from "@/utils/variableConstant";
 import { toast } from "sonner";
 import {
   Check, ChevronLeft, Loader2, Megaphone, Layers, Tags, Plus, Pencil, X,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -50,30 +54,91 @@ const toMicros = (v: string) => Math.round(parseFloat(v || "0") * MICROS);
 const fromMicros = (v: unknown) =>
   v == null ? "" : String(Number(v) / MICROS);
 
-function StepDot({ n, active, done, label, icon: Icon }: {
-  n: number; active: boolean; done: boolean; label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
+const STEP_LABELS: Record<Step, string> = {
+  1: "Campaign", 2: "Ad groups", 3: "Ads", 4: "Review",
+};
+
+/** Thin sense-of-progress strip. The structure rail is the real navigator —
+ * this just answers "how far along am I" without competing with it. */
+function ProgressRail({ step }: { step: Step }) {
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div
-        className={[
-          "w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-medium border",
-          done
-            ? "bg-primary text-primary-foreground border-primary"
-            : active
-              ? "border-primary text-primary"
-              : "border-border text-muted-foreground",
-        ].join(" ")}
-      >
-        {done ? <Check className="w-3.5 h-3.5" /> : n}
+    <div className="flex flex-col gap-1.5">
+      <p className="text-xs text-muted-foreground">
+        Step {step} of 4 · <span className="text-foreground font-medium">{STEP_LABELS[step]}</span>
+      </p>
+      <div className="h-1 rounded-full bg-accent overflow-hidden">
+        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(step / 4) * 100}%` }} />
       </div>
-      <div className="flex items-center gap-1.5 min-w-0">
-        <Icon className={active || done ? "w-4 h-4 text-foreground" : "w-4 h-4 text-muted-foreground"} />
-        <span className={["text-sm truncate", active || done ? "text-foreground" : "text-muted-foreground"].join(" ")}>
-          {label}
-        </span>
-      </div>
+    </div>
+  );
+}
+
+/** Specific, inline reasons a step can't be saved yet — shown next to the
+ * field once it's been touched, instead of just leaving the button dim. */
+function FieldErrors({ errors }: { errors: string[] }) {
+  if (!errors.length) return null;
+  return (
+    <ul className="flex flex-col gap-1">
+      {errors.map((e) => (
+        <li key={e} className="text-xs text-destructive flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-[1px]" />
+          <span>{e}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A warning icon with a native tooltip, used in the structure rail to
+ * surface "this can't serve yet" before the Review step. */
+function Warn({ text }: { text: string }) {
+  return (
+    <span title={text} className="shrink-0">
+      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+    </span>
+  );
+}
+
+/**
+ * Money field prefixed with the AD ACCOUNT's currency symbol.
+ *
+ * Not a hardcoded "$": the account decides the currency, and this one bills in
+ * INR. Labelling a 725 rupee budget as $725 misstates the amount by ~85x to
+ * anyone skimming, on the single field where being wrong costs real money.
+ *
+ * The value itself stays a plain decimal string that toMicros() converts on
+ * save; the prefix is display only.
+ */
+function currencySymbol(code?: string | null): string {
+  try {
+    // Ask Intl for the symbol rather than keeping a lookup table that goes
+    // stale — it returns e.g. "₹" for INR, "$" for USD.
+    return (
+      new Intl.NumberFormat(undefined, { style: "currency", currency: code || "USD" })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value ?? code ?? ""
+    );
+  } catch {
+    // An unrecognised code throws; showing the code beats showing the wrong sign.
+    return code ?? "";
+  }
+}
+
+function CurrencyInput({
+  currency,
+  ...props
+}: React.ComponentProps<typeof Input> & { currency?: string | null }) {
+  const symbol = currencySymbol(currency);
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+        {symbol}
+      </span>
+      <Input
+        {...props}
+        inputMode="decimal"
+        className={[symbol.length > 1 ? "pl-12" : "pl-7", props.className].filter(Boolean).join(" ")}
+      />
     </div>
   );
 }
@@ -84,6 +149,7 @@ export default function CampaignBuilderPage() {
   const queryClient = useQueryClient();
   const { adAccountId, connections, selectedIndex } = adAccountStore();
   const accountName = connections?.[selectedIndex ?? 0]?.adAccountName ?? null;
+  const accountCurrency = connections?.[selectedIndex ?? 0]?.currencyCode ?? null;
 
   const editingId = params.get("campaignId");
   const [campaignId, setCampaignId] = useState<string | null>(editingId);
@@ -98,6 +164,7 @@ export default function CampaignBuilderPage() {
     lifetime: "",
     daily: "",
   });
+  const [campaignTouched, setCampaignTouched] = useState({ name: false, lifetime: false });
 
   const campaignQuery = useQuery({
     queryKey: ["builder-campaign", adAccountId, campaignId],
@@ -120,6 +187,13 @@ export default function CampaignBuilderPage() {
       daily: fromMicros(d.budget?.daily_spend_limit_micros),
     });
   }, [campaignQuery.data]);
+
+  const campaignErrors = [
+    ...(c.name.trim().length < ACCOUNT_LIMITS.nameMin
+      ? [`Name needs at least ${ACCOUNT_LIMITS.nameMin} characters.`] : []),
+    ...(!c.lifetime
+      ? ["Lifetime budget is required — the API rejects a campaign without one."] : []),
+  ];
 
   const saveCampaign = useMutation({
     mutationFn: async () => {
@@ -161,9 +235,11 @@ export default function CampaignBuilderPage() {
     maxBid: "",
     hints: "",
   });
+  const [groupTouched, setGroupTouched] = useState({ name: false, maxBid: false });
   const resetGroup = () => {
     setEditingGroupId(null);
     setG({ name: "", description: "", status: "paused", maxBid: "", hints: "" });
+    setGroupTouched({ name: false, maxBid: false });
   };
 
   const groupsQuery = useQuery({
@@ -178,6 +254,13 @@ export default function CampaignBuilderPage() {
       return (Array.isArray(env) ? env : (env?.data ?? [])) as any[];
     },
   });
+
+  const groupErrors = [
+    ...(g.name.trim().length < ACCOUNT_LIMITS.nameMin
+      ? [`Name needs at least ${ACCOUNT_LIMITS.nameMin} characters.`] : []),
+    ...(!g.maxBid
+      ? ["Max bid is required — without one this ad group won't enter auctions."] : []),
+  ];
 
   const saveGroup = useMutation({
     mutationFn: async () => {
@@ -229,6 +312,7 @@ export default function CampaignBuilderPage() {
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
   const [adName, setAdName] = useState("");
   const [adStatus, setAdStatus] = useState<"active" | "paused">("paused");
+  const [adNameTouched, setAdNameTouched] = useState(false);
   const [creative, setCreative] = useState<CreativeDraft>({
     type: "chat_card", title: "", body: "", target_url: "",
   });
@@ -236,6 +320,7 @@ export default function CampaignBuilderPage() {
     setEditingAdId(null);
     setAdName("");
     setAdStatus("paused");
+    setAdNameTouched(false);
     setCreative({ type: "chat_card", title: "", body: "", target_url: "" });
   };
 
@@ -248,6 +333,13 @@ export default function CampaignBuilderPage() {
       return (Array.isArray(env) ? env : (env?.data ?? [])) as any[];
     },
   });
+
+  const adErrors = [
+    ...(adName.trim().length < ACCOUNT_LIMITS.nameMin
+      ? [`Ad name needs at least ${ACCOUNT_LIMITS.nameMin} characters.`] : []),
+    ...(creative.title.trim().length < 3 ? ["Title needs at least 3 characters."] : []),
+    ...(!creative.body.trim() ? ["Body can't be empty."] : []),
+  ];
 
   const saveAd = useMutation({
     mutationFn: async () => {
@@ -282,6 +374,8 @@ export default function CampaignBuilderPage() {
 
   const canStep2 = Boolean(campaignId);
   const canStep3 = Boolean(selectedGroupId);
+  const noGroupsYet = Boolean(campaignId) && !groupsQuery.isLoading && groups.length === 0;
+  const noAdsYet = Boolean(selectedGroupId) && !adsQuery.isLoading && ads.length === 0;
 
   if (!adAccountId) {
     return (
@@ -294,16 +388,23 @@ export default function CampaignBuilderPage() {
   return (
     <section className="w-full p-4 md:p-6">
       <div className="max-w-3xl mx-auto flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Button variant="ghost" size="sm" asChild className="shrink-0">
-              <Link href="/tools/campaign"><ChevronLeft className="w-4 h-4 mr-1" />Campaigns</Link>
-            </Button>
-            <h1 className="text-lg font-semibold tracking-tight truncate">
-              {editingId ? "Edit campaign" : "New campaign"}
-            </h1>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Button variant="ghost" size="sm" asChild className="shrink-0">
+                <Link href="/tools/campaign"><ChevronLeft className="w-4 h-4 mr-1" />Campaigns</Link>
+              </Button>
+              <h1 className="text-lg font-semibold tracking-tight truncate">
+                {editingId ? "Edit campaign" : "New campaign"}
+              </h1>
+            </div>
+            {campaignId && <Badge variant="secondary" className="font-mono text-xs shrink-0">{campaignId}</Badge>}
           </div>
-          {campaignId && <Badge variant="secondary" className="font-mono text-xs shrink-0">{campaignId}</Badge>}
+          <p className="text-xs text-muted-foreground pl-[3.75rem]">
+            {editingId
+              ? "You're editing a live structure — each save below applies immediately."
+              : "Nothing is created until you save step 1. Each step after that commits on its own."}
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-[15rem_1fr] gap-6 items-start">
@@ -312,7 +413,8 @@ export default function CampaignBuilderPage() {
               already had an ad group and an ad — they existed, but nothing on
               screen said so until you clicked forward twice. Ads Manager keeps
               the whole tree visible; so does this, and it doubles as the step
-              navigator. */}
+              navigator. The warning icons surface "can't serve yet" here,
+              instead of leaving it as a surprise at Review. */}
           <aside className="rounded-xl border border-border bg-card p-3 lg:sticky lg:top-4">
             <button
               onClick={() => setStep(1)}
@@ -322,7 +424,9 @@ export default function CampaignBuilderPage() {
               ].join(" ")}
             >
               <Megaphone className="w-4 h-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{c.name?.trim() || "Untitled campaign"}</span>
+              <span className="truncate flex-1 min-w-0">{c.name?.trim() || "Untitled campaign"}</span>
+              {campaignId && !noGroupsYet && <Check className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+              {noGroupsYet && <Warn text="No ad groups yet — this campaign can't serve" />}
             </button>
 
             <div className="mt-1 pl-2 border-l border-border ml-3.5 flex flex-col">
@@ -341,7 +445,8 @@ export default function CampaignBuilderPage() {
                       ].join(" ")}
                     >
                       <Layers className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                      <span className="truncate">{ag.name}</span>
+                      <span className="truncate flex-1 min-w-0">{ag.name}</span>
+                      {on && noAdsYet && <Warn text="No ads yet — this ad group can't serve" />}
                     </button>
                     {on && (
                       <div className="pl-4 flex flex-col">
@@ -390,73 +495,106 @@ export default function CampaignBuilderPage() {
           </aside>
 
           <div className="min-w-0 flex flex-col gap-4">
+            <ProgressRail step={step} />
+
         {/* ── Step 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
           <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="c-name">Campaign name</Label>
-              <Input id="c-name" value={c.name} onChange={(e) => setC({ ...c, name: e.target.value })}
-                placeholder="e.g. Spring launch — India" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="c-desc">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
-              <Textarea id="c-desc" rows={2} value={c.description}
-                onChange={(e) => setC({ ...c, description: e.target.value })} />
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Bidding</Label>
-                <Select value={c.bidding_type} onValueChange={(v) => setC({ ...c, bidding_type: v as typeof c.bidding_type })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="impressions">Impressions (CPM)</SelectItem>
-                    <SelectItem value="clicks">Clicks (CPC)</SelectItem>
-                    <SelectItem value="conversions">Conversions (oCPC)</SelectItem>
-                  </SelectContent>
-                </Select>
+            {campaignQuery.isLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading campaign…
               </div>
-              <div className="flex flex-col gap-2">
-                <Label>Status</Label>
-                <Select value={c.status} onValueChange={(v) => setC({ ...c, status: v as typeof c.status })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="c-life">Lifetime budget</Label>
-                <Input id="c-life" inputMode="decimal" value={c.lifetime}
-                  onChange={(e) => setC({ ...c, lifetime: e.target.value })} placeholder="500.00" />
-                <p className="text-xs text-muted-foreground">
-                  Required by the API. When it&apos;s spent the campaign stops for good — this is a
-                  total, not a monthly allowance.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="c-daily">Daily cap <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Input id="c-daily" inputMode="decimal" value={c.daily}
-                  onChange={(e) => setC({ ...c, daily: e.target.value })} placeholder="25.00" />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button
-                onClick={() => saveCampaign.mutate()}
-                disabled={saveCampaign.isPending || c.name.trim().length < ACCOUNT_LIMITS.nameMin || !c.lifetime}
-              >
-                {saveCampaign.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {campaignId ? "Save and continue" : "Create and continue"}
-              </Button>
-            </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="c-name">Campaign name</Label>
+                  <Input id="c-name" value={c.name}
+                    aria-invalid={campaignTouched.name && c.name.trim().length < ACCOUNT_LIMITS.nameMin}
+                    onChange={(e) => setC({ ...c, name: e.target.value })}
+                    onBlur={() => setCampaignTouched((t) => ({ ...t, name: true }))}
+                    placeholder="e.g. Spring launch — India" />
+                  <p className="text-xs text-muted-foreground">Internal only — for your own reference, not shown to anyone.</p>
+                  {campaignTouched.name && c.name.trim().length < ACCOUNT_LIMITS.nameMin && (
+                    <FieldErrors errors={[`At least ${ACCOUNT_LIMITS.nameMin} characters.`]} />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="c-desc">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <Textarea id="c-desc" rows={2} value={c.description}
+                    onChange={(e) => setC({ ...c, description: e.target.value })} />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label>Bidding</Label>
+                    <Select value={c.bidding_type} onValueChange={(v) => setC({ ...c, bidding_type: v as typeof c.bidding_type })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="impressions">Impressions (CPM)</SelectItem>
+                        <SelectItem value="clicks">Clicks (CPC)</SelectItem>
+                        <SelectItem value="conversions">Conversions (oCPC)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label>Status</Label>
+                    <Select value={c.status} onValueChange={(v) => setC({ ...c, status: v as typeof c.status })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="paused">Paused</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="c-life">Lifetime budget</Label>
+                    <CurrencyInput currency={accountCurrency} id="c-life" value={c.lifetime}
+                      aria-invalid={campaignTouched.lifetime && !c.lifetime}
+                      onChange={(e) => setC({ ...c, lifetime: e.target.value })}
+                      onBlur={() => setCampaignTouched((t) => ({ ...t, lifetime: true }))}
+                      placeholder="500.00" />
+                    <p className={["text-xs leading-relaxed", campaignTouched.lifetime && !c.lifetime ? "text-destructive" : "text-muted-foreground"].join(" ")}>
+                      Required by the API. This is a total spend cap that stops the campaign for
+                      good once it&apos;s hit — not a monthly allowance.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="c-daily">Daily cap <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <CurrencyInput currency={accountCurrency} id="c-daily" value={c.daily}
+                      onChange={(e) => setC({ ...c, daily: e.target.value })} placeholder="25.00" />
+                    <p className="text-xs text-muted-foreground">Paces spend within the lifetime cap above; it doesn&apos;t replace it.</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <FieldErrors errors={(campaignTouched.name || campaignTouched.lifetime) ? campaignErrors : []} />
+                  <Button
+                    onClick={() => {
+                      setCampaignTouched({ name: true, lifetime: true });
+                      if (campaignErrors.length) return;
+                      saveCampaign.mutate();
+                    }}
+                    disabled={saveCampaign.isPending}
+                  >
+                    {saveCampaign.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {campaignId ? "Save and continue" : "Create and continue"}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
         {/* ── Step 2 ─────────────────────────────────────────────────────── */}
         {step === 2 && (
           <div className="flex flex-col gap-4">
+            {noGroupsYet && (
+              <div className="rounded-xl border border-border bg-card p-3 flex items-start gap-2 text-xs text-muted-foreground">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-[1px] text-amber-600" />
+                <span>This campaign can&apos;t serve without at least one ad group — add one below.</span>
+              </div>
+            )}
+
             {groups.length > 0 && (
               <div className="rounded-xl border border-border bg-card divide-y divide-border">
                 {groups.map((ag) => (
@@ -464,12 +602,13 @@ export default function CampaignBuilderPage() {
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{ag.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {ag.status} · max bid {fromMicros(ag.bidding_config?.max_bid_micros) || "—"}
+                        {ag.status} · max bid ${fromMicros(ag.bidding_config?.max_bid_micros) || "—"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Button size="sm" variant="ghost" onClick={() => {
                         setEditingGroupId(String(ag.id));
+                        setGroupTouched({ name: false, maxBid: false });
                         setG({
                           name: ag.name ?? "",
                           description: ag.description ?? "",
@@ -496,13 +635,21 @@ export default function CampaignBuilderPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="g-name">Name</Label>
-                <Input id="g-name" value={g.name} onChange={(e) => setG({ ...g, name: e.target.value })} />
+                <Input id="g-name" value={g.name}
+                  aria-invalid={groupTouched.name && g.name.trim().length < ACCOUNT_LIMITS.nameMin}
+                  onChange={(e) => setG({ ...g, name: e.target.value })}
+                  onBlur={() => setGroupTouched((t) => ({ ...t, name: true }))} />
+                <p className="text-xs text-muted-foreground">Internal only — helps you tell ad groups apart later.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="g-bid">Max bid</Label>
-                  <Input id="g-bid" inputMode="decimal" value={g.maxBid}
-                    onChange={(e) => setG({ ...g, maxBid: e.target.value })} placeholder="1.50" />
+                  <CurrencyInput currency={accountCurrency} id="g-bid" value={g.maxBid}
+                    aria-invalid={groupTouched.maxBid && !g.maxBid}
+                    onChange={(e) => setG({ ...g, maxBid: e.target.value })}
+                    onBlur={() => setGroupTouched((t) => ({ ...t, maxBid: true }))}
+                    placeholder="1.50" />
+                  <p className="text-xs text-muted-foreground">The most you&apos;ll pay per {c.bidding_type === "clicks" ? "click" : c.bidding_type === "impressions" ? "1,000 impressions" : "conversion"}, set by the campaign&apos;s bidding type.</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Status</Label>
@@ -516,18 +663,22 @@ export default function CampaignBuilderPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="g-hints">Context hints <span className="text-muted-foreground font-normal">(one per line)</span></Label>
+                <Label htmlFor="g-hints">Context hints <span className="text-muted-foreground font-normal">(optional, one per line)</span></Label>
                 <Textarea id="g-hints" rows={3} value={g.hints}
                   onChange={(e) => setG({ ...g, hints: e.target.value })}
                   placeholder={"comparing project management tools for a small team\nlooking for a CRM that works offline"} />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  These are not keywords. Describe the situation someone is in when your
-                  product is genuinely useful — an intent or a moment, in plain language.
+                  Not keywords — there&apos;s no keyword targeting on this platform. Describe the
+                  situation someone is in when your product is genuinely useful, in plain language.
                 </p>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button onClick={() => saveGroup.mutate()}
-                  disabled={saveGroup.isPending || g.name.trim().length < ACCOUNT_LIMITS.nameMin || !g.maxBid}>
+              <div className="flex flex-col items-end gap-2">
+                <FieldErrors errors={(groupTouched.name || groupTouched.maxBid) ? groupErrors : []} />
+                <Button onClick={() => {
+                  setGroupTouched({ name: true, maxBid: true });
+                  if (groupErrors.length) return;
+                  saveGroup.mutate();
+                }} disabled={saveGroup.isPending}>
                   {saveGroup.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   {editingGroupId ? "Save ad group" : <><Plus className="w-4 h-4 mr-1" />Add ad group</>}
                 </Button>
@@ -554,6 +705,13 @@ export default function CampaignBuilderPage() {
               </Select>
             </div>
 
+            {noAdsYet && (
+              <div className="rounded-xl border border-border bg-card p-3 flex items-start gap-2 text-xs text-muted-foreground">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-[1px] text-amber-600" />
+                <span>This ad group can&apos;t serve without at least one ad — add one below.</span>
+              </div>
+            )}
+
             {ads.length > 0 && (
               <div className="rounded-xl border border-border bg-card divide-y divide-border">
                 {ads.map((ad) => (
@@ -569,6 +727,7 @@ export default function CampaignBuilderPage() {
                       setEditingAdId(String(ad.id));
                       setAdName(ad.name ?? "");
                       setAdStatus(ad.status === "active" ? "active" : "paused");
+                      setAdNameTouched(false);
                       setCreative({
                         type: ad.creative?.type === "product_ad_template" ? "product_ad_template" : "chat_card",
                         title: ad.creative?.title ?? "",
@@ -594,7 +753,10 @@ export default function CampaignBuilderPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="a-name">Ad name</Label>
-                  <Input id="a-name" value={adName} onChange={(e) => setAdName(e.target.value)}
+                  <Input id="a-name" value={adName}
+                    aria-invalid={adNameTouched && adName.trim().length < ACCOUNT_LIMITS.nameMin}
+                    onChange={(e) => setAdName(e.target.value)}
+                    onBlur={() => setAdNameTouched(true)}
                     placeholder="Internal label — not shown to anyone" />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -620,13 +782,13 @@ export default function CampaignBuilderPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={() => saveAd.mutate()}
-                  disabled={
-                    saveAd.isPending || !selectedGroupId ||
-                    adName.trim().length < ACCOUNT_LIMITS.nameMin ||
-                    creative.title.trim().length < 3 || !creative.body.trim()
-                  }>
+              <div className="flex flex-col items-end gap-2">
+                <FieldErrors errors={adNameTouched ? adErrors : []} />
+                <Button onClick={() => {
+                  setAdNameTouched(true);
+                  if (!selectedGroupId || adErrors.length) return;
+                  saveAd.mutate();
+                }} disabled={saveAd.isPending || !selectedGroupId}>
                   {saveAd.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   {editingAdId ? "Save ad" : <><Plus className="w-4 h-4 mr-1" />Add ad</>}
                 </Button>
@@ -652,7 +814,11 @@ export default function CampaignBuilderPage() {
                 <div><dt className="text-muted-foreground text-xs">Bidding</dt><dd className="capitalize">{c.bidding_type}</dd></div>
                 <div>
                   <dt className="text-muted-foreground text-xs">Lifetime budget</dt>
-                  <dd>{c.lifetime || "—"}{c.daily ? ` · ${c.daily}/day` : ""}</dd>
+                  {/* Account currency, not a hardcoded dollar — this account bills in INR. */}
+                  <dd>
+                    {c.lifetime ? `${currencySymbol(accountCurrency)}${c.lifetime}` : "—"}
+                    {c.daily ? ` · ${currencySymbol(accountCurrency)}${c.daily}/day cap` : ""}
+                  </dd>
                 </div>
               </dl>
 
@@ -663,9 +829,12 @@ export default function CampaignBuilderPage() {
                   {groups.length} ad group{groups.length === 1 ? "" : "s"}
                 </h3>
                 {groups.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    A campaign with no ad group cannot serve — Serving Doctor will report it as
-                    <span className="font-mono"> campaign_has_no_ad_groups</span>.
+                  <p className="text-xs text-destructive flex items-start gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-[1px]" />
+                    <span>
+                      A campaign with no ad group cannot serve — Serving Doctor will report it as
+                      <span className="font-mono"> campaign_has_no_ad_groups</span>.
+                    </span>
                   </p>
                 )}
                 {groups.map((ag) => (
@@ -684,8 +853,9 @@ export default function CampaignBuilderPage() {
                       {ads.length} ad{ads.length === 1 ? "" : "s"} in the selected ad group
                     </h3>
                     {ads.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        An ad group with no ad cannot serve either.
+                      <p className="text-xs text-destructive flex items-start gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-[1px]" />
+                        <span>An ad group with no ad cannot serve either.</span>
                       </p>
                     )}
                     {ads.map((ad) => (
