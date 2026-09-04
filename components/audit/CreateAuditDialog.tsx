@@ -195,7 +195,7 @@ export function CreateAuditDialog({
                     {w.needsHistory && (
                       <Badge
                         variant="outline"
-                        className="mt-1.5 text-[10px] px-1.5 py-0 border-0 bg-sky-100 text-sky-700"
+                        className="mt-1.5 text-[10px] px-1.5 py-0 border-0 bg-zinc-100 text-zinc-800"
                       >
                         needs history
                       </Badge>

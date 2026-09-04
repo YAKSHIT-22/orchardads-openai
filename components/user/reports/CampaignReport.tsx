@@ -18,7 +18,7 @@ export function CampaignReport({ data, filters, uniqueCampaigns }: CampaignRepor
         <CardTitle className="flex flex-wrap items-center justify-between gap-2">
           Campaign Performance Details
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+            <Badge variant="secondary" className="bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-300">
               {data.length} Records
             </Badge>
             {filters.selectedCampaignId && (

@@ -18,7 +18,7 @@ export function AdGroupReport({ data, filters, uniqueCampaigns, uniqueAdGroups }
         <CardTitle className="flex items-center justify-between">
           Ad Group Performance Details
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            <Badge variant="secondary" className="bg-zinc-100 text-zinc-900">
               {data.length} Records
             </Badge>
             {filters.selectedCampaignId && (

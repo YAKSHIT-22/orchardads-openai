@@ -56,7 +56,7 @@ function AutomationBadge({ s }: { s: StrategyRow }) {
     );
   }
   return (
-    <Badge variant="outline" className="text-[11px] border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400 gap-1">
+    <Badge variant="outline" className="text-[11px] border-zinc-600/30 bg-zinc-600/10 text-zinc-800 dark:text-zinc-400 gap-1">
       <Clock className="w-3 h-3" />
       Auto · {FREQUENCY_LABEL[s.frequency]} · {s.notifyEmail ? "notifies" : "records"}
     </Badge>
@@ -64,7 +64,7 @@ function AutomationBadge({ s }: { s: StrategyRow }) {
 }
 
 const RUN_MODE_BADGE: Record<RunRow["mode"], string> = {
-  PREVIEW: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  PREVIEW: "border-zinc-600/30 bg-zinc-600/10 text-zinc-800 dark:text-zinc-400",
   APPLY: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   AUTO: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
 };

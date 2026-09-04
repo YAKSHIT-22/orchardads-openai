@@ -398,7 +398,7 @@ export default function BidOptimizerPage() {
                             className={
                               p.direction === "down"
                                 ? "text-emerald-600 dark:text-emerald-400 font-medium"
-                                : "text-sky-600 dark:text-sky-400 font-medium"
+                                : "text-zinc-700 dark:text-zinc-400 font-medium"
                             }
                           >
                             {p.direction === "down" ? (

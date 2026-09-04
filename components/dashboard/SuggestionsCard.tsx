@@ -26,7 +26,7 @@ const TONE: Record<SuggestionTone, { icon: LucideIcon; chip: string }> = {
   critical: { icon: ShieldMinus, chip: "bg-rose-600" },
   warning: { icon: TriangleAlert, chip: "bg-amber-500" },
   positive: { icon: Sparkles, chip: "bg-emerald-600" },
-  info: { icon: Info, chip: "bg-sky-600" },
+  info: { icon: Info, chip: "bg-zinc-700" },
 };
 
 export function SuggestionsCard({

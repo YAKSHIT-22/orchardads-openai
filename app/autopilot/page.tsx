@@ -76,7 +76,7 @@ const mockSuggestions = [
 ];
 
 const toneClass: Record<string, string> = {
-  sky: "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  sky: "border-zinc-600/30 bg-zinc-600/10 text-zinc-700 dark:text-zinc-400",
   amber: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
   zinc: "border-border bg-muted text-muted-foreground",
 };

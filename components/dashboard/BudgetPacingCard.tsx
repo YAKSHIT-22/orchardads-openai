@@ -24,7 +24,7 @@ import { Gauge, Wallet } from "lucide-react";
 const STATUS_STYLE: Record<PacingStatus, { label: string; fill: string; text: string }> = {
   exhausted: { label: "Stopped", fill: "bg-red-500", text: "text-red-600 dark:text-red-400" },
   running_out: { label: "Running out", fill: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
-  underspending: { label: "Under", fill: "bg-sky-500", text: "text-sky-600 dark:text-sky-400" },
+  underspending: { label: "Under", fill: "bg-zinc-600", text: "text-zinc-700 dark:text-zinc-400" },
   healthy: { label: "On track", fill: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
 };
 
@@ -118,7 +118,7 @@ export function BudgetPacingCard({
               <span className="text-amber-600 dark:text-amber-400">{counts.runningOut} running out</span>
             )}
             {counts.under > 0 && (
-              <span className="text-sky-600 dark:text-sky-400">{counts.under} under-pacing</span>
+              <span className="text-zinc-700 dark:text-zinc-400">{counts.under} under-pacing</span>
             )}
             <span className="text-emerald-600 dark:text-emerald-400">{counts.healthy} on track</span>
           </div>

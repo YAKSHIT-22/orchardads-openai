@@ -9,7 +9,7 @@ import { BetaTag } from "@/components/brand/BetaTag";
  */
 export function AuthShowcase() {
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl bg-[#160c2e] text-white flex flex-col justify-between p-8 lg:p-10">
+    <div className="relative w-full h-full overflow-hidden rounded-2xl bg-[#0a0a0a] text-white flex flex-col justify-between p-8 lg:p-10">
       {/* glow orbs */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-zinc-600/40 blur-[110px]" />
@@ -55,7 +55,7 @@ export function AuthShowcase() {
                   <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> 4.9 · Travel
                 </div>
               </div>
-              <div className="h-7 rounded-full bg-white/90 text-[#160c2e] text-xs font-semibold px-4 flex items-center">GET</div>
+              <div className="h-7 rounded-full bg-white/90 text-[#0a0a0a] text-xs font-semibold px-4 flex items-center">GET</div>
             </div>
           </div>
 
@@ -71,12 +71,12 @@ export function AuthShowcase() {
             <svg viewBox="0 0 120 40" className="w-full h-10">
               <defs>
                 <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#e879f9" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#e879f9" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#a1a1aa" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#a1a1aa" stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path d="M0 30 L20 26 L40 28 L60 16 L80 20 L100 8 L120 12 L120 40 L0 40 Z" fill="url(#sparkFill)" />
-              <path d="M0 30 L20 26 L40 28 L60 16 L80 20 L100 8 L120 12" fill="none" stroke="#e879f9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M0 30 L20 26 L40 28 L60 16 L80 20 L100 8 L120 12" fill="none" stroke="#a1a1aa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
         </div>

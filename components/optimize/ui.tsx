@@ -76,7 +76,7 @@ const STAT_CHIP: Record<StatTone, string> = {
   positive: "bg-emerald-600",
   warning: "bg-amber-500",
   critical: "bg-rose-600",
-  info: "bg-sky-600",
+  info: "bg-zinc-700",
   neutral: "bg-zinc-400",
 };
 
@@ -117,7 +117,7 @@ const BANNER_TONES: Record<StatTone, { wrap: string; chip: string }> = {
   positive: { wrap: "border-emerald-200 bg-emerald-50", chip: "bg-emerald-600 text-white" },
   warning: { wrap: "border-amber-200 bg-amber-50", chip: "bg-amber-500 text-white" },
   critical: { wrap: "border-rose-200 bg-rose-50", chip: "bg-rose-600 text-white" },
-  info: { wrap: "border-sky-200 bg-sky-50", chip: "bg-sky-600 text-white" },
+  info: { wrap: "border-zinc-200 bg-zinc-50", chip: "bg-zinc-700 text-white" },
   neutral: { wrap: "border-border bg-muted/40", chip: "bg-zinc-400 text-white" },
 };
 

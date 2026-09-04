@@ -220,7 +220,7 @@ function EntryRow({
                   "text-xs",
                   diff.delta.startsWith("-")
                     ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-sky-600 dark:text-sky-400"
+                    : "text-zinc-700 dark:text-zinc-400"
                 )}
               >
                 {diff.delta}
