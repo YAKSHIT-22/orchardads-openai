@@ -165,14 +165,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           navCollapsed ? "w-[3.75rem]" : "w-56"
         )}
       >
-        <div className="flex items-center gap-1.5 px-3 py-4 min-w-0">
+        {/*
+          The mark gets the full rail width.
+          It was `h-6 w-auto` sharing a row with the Beta badge, so in a 224px
+          sidebar it rendered as a small logo hugging the left edge with dead
+          space beside it. The logo is 268x111 (~2.42:1), so anything sharing
+          its row costs width fast — the badge now sits on its own line and the
+          mark spans the column.
+        */}
+        <div className="px-3 py-3 min-w-0">
           {navCollapsed ? (
-            <span className="mx-auto text-sm font-semibold">OA</span>
+            <span className="block text-center text-sm font-semibold">OA</span>
           ) : (
-            <>
-              <img src="/assets/logo.svg" alt="OrchardAds" className="h-6 w-auto min-w-0" />
-              <BetaTag className="shrink-0" />
-            </>
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <img src="/assets/logo.svg" alt="OrchardAds" className="w-full h-auto" />
+              <BetaTag className="self-start" />
+            </div>
           )}
         </div>
 
