@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+import { ensureFreshSync } from "@/lib/openai/sync";
 import { resolveConnection } from "./credentials";
 import {
   computeMetrics,
@@ -78,6 +79,13 @@ export async function runCachedReport({
   scopeKey?: string;
 }): Promise<ReportData> {
   const connection = await resolveConnection(userId, { adAccountId });
+
+  // Entity metadata — names, statuses and above all serving_issues — comes from
+  // the cache, not from insights. A connection that has never synced therefore
+  // produces a report that looks healthy because it is empty, which is the
+  // opposite of useful. Cold caches are filled before we build; stale ones
+  // refresh behind the response.
+  await ensureFreshSync(connection);
 
   const fingerprint = JSON.stringify(request);
   const redisKey = `oai:report:${JSON.stringify([userId, connection.adAccountId, scopeKey, reportType, fingerprint])}`;

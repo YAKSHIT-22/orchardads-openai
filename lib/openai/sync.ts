@@ -543,3 +543,45 @@ export async function syncAllForUser(userId: string, options: SyncOptions = {}):
   }
   return results;
 }
+
+/**
+ * Make sure the cache is worth reading before a page renders from it.
+ *
+ * Everything the UI shows comes from our own tables, so a connection that has
+ * never synced produces a page that is not empty-but-honest — it is actively
+ * wrong. Serving Doctor is the worst case: with no cached entities it finds no
+ * serving issues and reads as "nothing is blocking delivery", when in fact the
+ * account had `ad_account_payment_method_missing_or_unauthorized` the whole
+ * time. A false all-clear on the one feature whose entire promise is telling
+ * you why nothing is running.
+ *
+ * So:
+ *   - COLD cache (never synced): await an entity-only pull. Three list calls,
+ *     fast enough to block a page load, and it is what serving issues, review
+ *     status and names all come from.
+ *   - STALE cache: refresh in the background at the plan's interval. The caller
+ *     renders what it has; the next load is current.
+ *
+ * Single-flight is enforced by the Redis lock inside syncConnection, so several
+ * pages opening at once cost one sync.
+ */
+export async function ensureFreshSync(
+  connection: OpenAiAdsConnection,
+  { staleAfterMinutes = 360 }: { staleAfterMinutes?: number } = {}
+): Promise<void> {
+  const last = connection.lastSyncAt?.getTime() ?? 0;
+
+  if (!last) {
+    await syncConnection(connection, { trigger: "manual", entitiesOnly: true }).catch((e) => {
+      console.error("cold sync failed:", (e as Error).message);
+    });
+    return;
+  }
+
+  const ageMinutes = (Date.now() - last) / 60_000;
+  if (ageMinutes >= staleAfterMinutes) {
+    void syncConnection(connection, { trigger: "cron" }).catch((e) => {
+      console.error("refresh sync failed:", (e as Error).message);
+    });
+  }
+}

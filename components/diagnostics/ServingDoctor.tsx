@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CheckCircle2,
@@ -75,6 +75,7 @@ const LEVEL_ICON = {
 export function ServingDoctor() {
   const { adAccountId, currency } = adAccountStore();
   const connection = useActiveConnection();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState<string | null>(null);
 
   // Three report calls, each account-wide. The insights endpoints take an
@@ -156,9 +157,29 @@ export function ServingDoctor() {
     };
   }, [query.data]);
 
+  // The report request is what triggers a cold sync, and that sync is what
+  // refreshes the account snapshot. The connection in the store was loaded
+  // BEFORE any of that, so its review status can be stale — it was captured
+  // when the key was pasted and never updated since. Refresh it once the report
+  // lands, or the banner below keeps asserting a rejection that OpenAI has
+  // already cleared.
+  const synced = query.isSuccess;
+  useEffect(() => {
+    if (synced) queryClient.invalidateQueries({ queryKey: ["connections"] });
+  }, [synced, queryClient]);
+
+  // Never synced: entity metadata (and therefore every serving issue) lives in
+  // our cache, so before a sync this tool would find nothing and read as
+  // "everything is fine" — a false all-clear on the one feature whose whole
+  // job is telling you why nothing is running.
+  const neverSynced = !connection?.lastSyncAt;
+
   // The account's own brand review outranks everything: an account that hasn't
   // passed it cannot serve a single ad, no matter what its campaigns look like.
-  const brandBlocked = !!connection?.reviewStatus && connection.reviewStatus !== "approved";
+  // Only asserted once we have a synced snapshot, so a stale "rejected" from
+  // connect time can't produce a false alarm.
+  const brandBlocked =
+    !neverSynced && !!connection?.reviewStatus && connection.reviewStatus !== "approved";
 
   if (!adAccountId) {
     return (
@@ -192,6 +213,22 @@ export function ServingDoctor() {
           Re-check
         </Button>
       </header>
+
+      {neverSynced && !query.isLoading && (
+        <div className="rounded-xl border border-border bg-muted/40 p-4 flex gap-3">
+          <RefreshCw className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">
+              First sync is still running
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              Serving issues come from OpenAI&apos;s entity data, which we pull into our own
+              tables. Until that first pull finishes this page can&apos;t tell you anything —
+              it is not saying your account is healthy. Give it a moment and re-check.
+            </p>
+          </div>
+        </div>
+      )}
 
       {brandBlocked && (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex gap-3">
