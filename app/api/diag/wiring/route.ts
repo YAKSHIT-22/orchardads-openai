@@ -161,11 +161,23 @@ export async function GET(req: Request) {
     group_by_entity: true,
     include_zero_rows: true,
   });
-  // Exactly what the fixed getConversionsWith sends when it has no entity ids.
-  await probe("conversions: FIXED shape (no group_by_entity)", "/conversions/insights", undefined, "POST", {
+  // Omitting group_by_entity still errors, so it defaults to true server-side
+  // and entity_ids is effectively mandatory. Two ways out: say false, or supply
+  // the ids. Test both.
+  await probe("conversions: group_by_entity FALSE", "/conversions/insights", undefined, "POST", {
     aggregation_level: "campaign",
     time_ranges: [JSON.stringify(rangeObj)],
     time_granularity: "none",
+    group_by_entity: false,
+    include_zero_rows: true,
+  });
+  const cmpId = "cmpn_23de9f4cf3e8819fbd4f699afc7015cc";
+  await probe("conversions: WITH entity_ids", "/conversions/insights", undefined, "POST", {
+    aggregation_level: "campaign",
+    time_ranges: [JSON.stringify(rangeObj)],
+    time_granularity: "none",
+    entity_ids: [cmpId],
+    group_by_entity: true,
     include_zero_rows: true,
   });
 
