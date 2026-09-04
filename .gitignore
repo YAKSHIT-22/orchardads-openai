@@ -43,3 +43,9 @@ next-env.d.ts
 # locally generated deploy secrets — never commit
 .secrets/
 tmp-media/
+
+# stray screen captures — never commit
+*.mov
+*.mp4
+Screenshot*.png
+Screen Recording*

@@ -480,7 +480,12 @@ function num(v: unknown): number {
  * would silently collapse into a single undated bucket.
  */
 function pickDate(row: Record<string, unknown>): string | undefined {
-  for (const k of ["readable_time", "date", "time", "start_time", "timestamp", "bucket"]) {
+  // NOT `start_time`: that is the campaign's own start, present on every row
+  // including untimed ones. Treating it as the bucket timestamp gave delivery
+  // rows a date while conversion rows had none, so the join key differed and
+  // each campaign split into two table rows — one named, one falling back to
+  // its raw id. Only genuine bucket labels belong here.
+  for (const k of ["readable_time", "date", "time", "timestamp", "bucket"]) {
     const v = row[k];
     if (v) return normalizeDate(v);
   }
