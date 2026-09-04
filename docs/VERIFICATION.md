@@ -1,12 +1,34 @@
 # Running against the real API — the verification loop
 
-Everything in this codebase is derived from the OpenAPI spec and the prose docs.
-**Zero calls have been made to `api.ads.openai.com`.** The spec documents no
-error bodies and has shipped five changes in three months, so a set of mappings
-that typechecks is not the same as a set of mappings that works.
+**Status: partially verified as of 2026-09-04.** This document used to open by
+saying zero calls had been made to `api.ads.openai.com`. That is no longer true:
+a live ad account (INR, Asia/Kolkata) is connected and the read paths below have
+been exercised against it. What that produced is recorded here, because every
+one of these was a mapping the spec did not settle.
 
-This is the loop to run before billing anyone. Budget: **₹20,000–45,000** and
-about a day of attention spread over a week.
+## Verified against the live API
+
+| Finding | Consequence |
+| --- | --- |
+| `fields[]` is a STRICT allowlist; one bad entry 400s the whole request | `metadata.readable_time` was rejected and took the dashboard down. There is no time member at all — the bucket timestamp is RETURNED for a time-bucketed request, never requested |
+| Response keys flatten the dotted field: `campaign.name` → `campaign_name`; metrics stay bare (`clicks`, `spend`) | Our id/name/metric reads were already right; `ad_title` was not — ads project `ad.name` → `ad_name` |
+| Insights report budgets in **currency units** (`campaign_budget_daily: 725`); entities report **micros** (`daily_spend_limit_micros: 725000000`) | A 1,000,000× error waiting to happen. Converted on the way in |
+| `group_by_entity` defaults to TRUE server-side and then demands `entity_ids` | Omitting it still 400s. Must be sent explicitly `false`. Every call site swallowed the error, so conversions silently read as ZERO — every CPA, CVR, revenue and ROAS was wrong rather than absent |
+| `time_ranges` must be an array of JSON **strings**, even in a POST body | Objects are rejected: "expected a string, but got an object" |
+| Ad groups carry no `campaign_id`; ads carry no `ad_group_id` | Sync dropped every one of them. Parents must come from the REQUEST — `/ad_groups?campaign_id=`, `/ads?ad_group_id=` — not the response |
+| `serving_issues` is `[{code}]`, not `string[]` | Already handled. Observed code: `ad_account_payment_method_missing_or_unauthorized` |
+| `POST /uploads` accepts only `purpose: custom_audience`, CSV/TXT only | There is **no creative image upload**. `ad_creative` and `creative` are both rejected as invalid values |
+| `/geo_lookup/search` returns `{query, count, results}` — not the `{object, data}` envelope | The one read endpoint that breaks the pattern |
+| `/ad_account/spend_limit_windows` is in the spec but 404s ("Invalid URL") | Gated or unshipped. Treated as optional so it cannot mark every sync PARTIAL |
+| `includes[]=zero_impression_items`, ad-group and ad projections, country and device segments | All accepted |
+
+## Still unverified
+
+Nothing has been **written** to the live account by this codebase: no campaign,
+ad group, ad, audience or feed has been created, updated, paused or archived
+through it. Every write path below — and the whole of step 5 — remains
+spec-derived. The feed SFTP flow in particular has never run, because the
+account has no feed.
 
 ---
 

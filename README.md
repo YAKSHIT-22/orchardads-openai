@@ -122,14 +122,23 @@ one callback route, not a rewrite of every call site.
 
 ## Status
 
-**Not production-ready, for one specific reason:** every response shape in this
-codebase is derived from the official OpenAPI spec and documentation. **Zero
-calls have been made against `api.ads.openai.com`.** The spec documents no error
-bodies and has shipped five changes in three months.
+**Read paths are verified against a live ad account; writes are not.**
 
-Before a first customer: fund a real ad account, run the full loop
-(connect → sync → recommend → apply → verify), and correct every mapping marked
-`[U]` in the research docs. See `BLOCKERS.md` RED-3.
+A real account (INR, Asia/Kolkata) is connected, and exercising it corrected a
+dozen mappings the spec did not settle — several of which were silently wrong
+rather than loud. The worst: `group_by_entity` defaults to true server-side and
+then demands `entity_ids`, so conversions returned a 400 that every call site
+swallowed as "no conversions". CPA, CVR, revenue and ROAS were all wrong rather
+than absent. Ad groups and ads carry no parent id, so sync discarded every one
+of them. And `fields[]` is a strict allowlist where one bad entry 400s the whole
+request.
+
+The full list is in [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
+
+**Nothing has been written to a live account through this codebase yet** — no
+campaign, ad group, ad, audience or feed has been created, updated, paused or
+archived. That half of the loop, and every `[U]` marker attached to a write,
+still stands. See `BLOCKERS.md` RED-3.
 
 ---
 
