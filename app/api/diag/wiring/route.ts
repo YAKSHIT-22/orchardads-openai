@@ -161,11 +161,11 @@ export async function GET(req: Request) {
     group_by_entity: true,
     include_zero_rows: true,
   });
-  await probe("conversions: time_ranges as OBJECT", "/conversions/insights", undefined, "POST", {
+  // Exactly what the fixed getConversionsWith sends when it has no entity ids.
+  await probe("conversions: FIXED shape (no group_by_entity)", "/conversions/insights", undefined, "POST", {
     aggregation_level: "campaign",
-    time_ranges: [rangeObj],
+    time_ranges: [JSON.stringify(rangeObj)],
     time_granularity: "none",
-    group_by_entity: true,
     include_zero_rows: true,
   });
 
