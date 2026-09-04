@@ -48,6 +48,9 @@ export interface CampaignReportRow {
   servingIssues?: string[];
   lifetimeBudgetMicros?: number | null;
   dailyBudgetMicros?: number | null;
+  /** Unix seconds, straight from the API. */
+  startTime?: number | null;
+  endTime?: number | null;
   performance: Performance;
 }
 

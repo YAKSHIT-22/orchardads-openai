@@ -285,6 +285,26 @@ export type Metrics = {
   entityName?: string;
   date?: string;
 
+  /**
+   * Entity attributes carried on the insights row itself
+   * (campaign_status, campaign_budget_daily/lifetime, start_time, end_time).
+   *
+   * The cache is the richer source, but it is empty until a sync has run, and
+   * a table that shows a campaign with no status, budget or dates because a
+   * background job hasn't fired yet is just broken to the person looking at it.
+   * These let the UI render correctly from the first request.
+   *
+   * NOTE the unit difference: insights report budgets in CURRENCY UNITS
+   * (campaign_budget_daily: 725) while entities report MICROS
+   * (daily_spend_limit_micros: 725000000). Converted to micros here so
+   * everything downstream stays in one unit.
+   */
+  status?: string;
+  lifetimeBudgetMicros?: number | null;
+  dailyBudgetMicros?: number | null;
+  startTime?: number | null;
+  endTime?: number | null;
+
   impressions: number;
   clicks: number;
   spendMicros: number;
@@ -363,7 +383,10 @@ export function joinInsights(
 ): Metrics[] {
   const idKey = `${level}_id` as const;
   const nameKey =
-    level === "ad" ? "ad_title" : level === "ad_group" ? "ad_group_name" : level === "campaign" ? "campaign_name" : "name";
+    // Response keys flatten the dotted field: campaign.name -> campaign_name.
+    // Ads project `ad.name` (ad.title was an unverified guess and is no longer
+    // requested), so the key is ad_name.
+    level === "ad" ? "ad_name" : level === "ad_group" ? "ad_group_name" : level === "campaign" ? "campaign_name" : "ad_account_name";
 
   const merged = new Map<
     string,
@@ -371,6 +394,11 @@ export function joinInsights(
       entityId: string;
       entityName?: string;
       date?: string;
+      status?: string;
+      lifetimeBudgetMicros?: number | null;
+      dailyBudgetMicros?: number | null;
+      startTime?: number | null;
+      endTime?: number | null;
       impressions: number;
       clicks: number;
       spendMicros: number;
@@ -388,6 +416,17 @@ export function joinInsights(
     const k = keyOf(entityId, date);
     const acc = merged.get(k) ?? blank(entityId, date);
     acc.entityName = (row[nameKey] as string) ?? (row.name as string) ?? acc.entityName;
+
+    // Entity attributes travel on the insights row. Budgets arrive in currency
+    // units here (unlike entity reads, which are micros) — normalise to micros.
+    const statusKey = `${level}_status`;
+    const lifeKey = `${level}_budget_lifetime`;
+    const dailyKey = `${level}_budget_daily`;
+    acc.status = (row[statusKey] as string) ?? acc.status;
+    if (row[lifeKey] != null) acc.lifetimeBudgetMicros = Math.round(num(row[lifeKey]) * 1_000_000);
+    if (row[dailyKey] != null) acc.dailyBudgetMicros = Math.round(num(row[dailyKey]) * 1_000_000);
+    if (row.start_time != null) acc.startTime = num(row.start_time);
+    if (row.end_time != null) acc.endTime = num(row.end_time);
     acc.impressions += num(row.impressions);
     acc.clicks += num(row.clicks);
     // `spend` is reported in the account currency; convert to micros once, here.
@@ -416,6 +455,11 @@ function blank(entityId: string, date?: string) {
     entityId,
     entityName: undefined as string | undefined,
     date,
+    status: undefined as string | undefined,
+    lifetimeBudgetMicros: null as number | null,
+    dailyBudgetMicros: null as number | null,
+    startTime: null as number | null,
+    endTime: null as number | null,
     impressions: 0,
     clicks: 0,
     spendMicros: 0,

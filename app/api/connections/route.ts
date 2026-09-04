@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError, adsFetchWithConnection } from "@/lib/openai/client";
 import { sealApiKey } from "@/lib/openai/credentials";
+import { syncConnection } from "@/lib/openai/sync";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { requireAdAccountSlot } from "@/lib/billing/entitlements";
 import type { AdAccount } from "@/lib/openai/types";
@@ -177,6 +178,17 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
       ip: clientIp(req),
       userAgent: req.headers.get("user-agent") ?? undefined,
     },
+  });
+
+  // Kick off the first sync. Everything the UI reads comes from our own tables,
+  // so without this a freshly connected account shows an empty dashboard and an
+  // empty Serving Doctor — the exact opposite of the promise that this product
+  // is useful the minute a key is pasted.
+  //
+  // Deliberately not awaited: the first pull can take tens of seconds and the
+  // user should land in the app immediately. Failures are recorded on SyncRun.
+  void syncConnection(connection, { trigger: "manual" }).catch((e) => {
+    console.error("initial sync failed:", (e as Error).message);
   });
 
   // Re-mint the session cookie with hasAccessData: true.

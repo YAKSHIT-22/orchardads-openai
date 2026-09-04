@@ -2,8 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "prisma generate && next build",
   "framework": "nextjs",
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "crons": [
+    {
+      "path": "/api/cron/sync",
+      "schedule": "0 7 * * *"
+    },
     {
       "path": "/api/cron/evaluate-alerts",
       "schedule": "0 9 * * *"
@@ -22,6 +28,9 @@
     },
     "app/api/reports/**/*.ts": {
       "maxDuration": 60
+    },
+    "app/api/connections/sync/route.ts": {
+      "maxDuration": 300
     }
   }
 }

@@ -270,16 +270,27 @@ async function attachCampaigns(
   });
   const byId = new Map(rows.map((r) => [r.externalId, r]));
 
+  // The cache (populated by sync) is the richer source — it alone has bidding
+  // type and serving issues. But it is empty until a sync has run, and a table
+  // showing "unknown" status and no budget because a background job hasn't
+  // fired yet is simply broken to the person looking at it. So fall back to the
+  // attributes the insights row already carries.
   return totals.map((m) => {
     const meta = byId.get(m.entityId);
     return {
       campaignId: m.entityId,
       campaignName: meta?.name ?? m.entityName ?? m.entityId,
-      campaignStatus: meta?.status ?? "unknown",
+      campaignStatus: meta?.status ?? m.status ?? "unknown",
       biddingType: meta?.biddingType ?? undefined,
       servingIssues: meta?.servingIssues ?? [],
-      lifetimeBudgetMicros: meta?.lifetimeBudgetMicros ? Number(meta.lifetimeBudgetMicros) : null,
-      dailyBudgetMicros: meta?.dailyBudgetMicros ? Number(meta.dailyBudgetMicros) : null,
+      lifetimeBudgetMicros: meta?.lifetimeBudgetMicros
+        ? Number(meta.lifetimeBudgetMicros)
+        : (m.lifetimeBudgetMicros ?? null),
+      dailyBudgetMicros: meta?.dailyBudgetMicros
+        ? Number(meta.dailyBudgetMicros)
+        : (m.dailyBudgetMicros ?? null),
+      startTime: m.startTime ?? null,
+      endTime: m.endTime ?? null,
       performance: toPerformance(m, currency),
     };
   });

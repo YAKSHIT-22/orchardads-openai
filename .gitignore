@@ -42,3 +42,4 @@ next-env.d.ts
 
 # locally generated deploy secrets — never commit
 .secrets/
+tmp-media/
