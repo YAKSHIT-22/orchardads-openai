@@ -1,4 +1,11 @@
 "use client";
+import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
+import { usePaddle } from "@/components/billing/usePaddle";
 
 import Link from "next/link";
 import { Check, Clock, Lock, Sparkles, TriangleAlert } from "lucide-react";
@@ -22,9 +29,13 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  - Only the meters that cost us money are shown, because they're the only ones
  *    we count. Displaying a meter we don't enforce would be theatre.
  *
- * There is no checkout button wired to a processor yet — the payment rail
- * decision (Razorpay for India, a merchant of record for the rest) isn't made,
- * and a fake "Subscribe" that goes nowhere is worse than an honest one.
+ * Checkout runs through Paddle, which is the MERCHANT OF RECORD: it sells to
+ * the customer and handles sales tax / VAT / GST. Entitlements are never
+ * granted from the browser's success callback — only the signed webhook
+ * promotes a plan, so closing the tab at the right moment wins nothing.
+ *
+ * When Paddle isn't configured the buttons fall back to "Talk to us" rather
+ * than a Subscribe that goes nowhere.
  */
 
 const HIGHLIGHT_FEATURES: Record<string, Feature[]> = {
@@ -35,6 +46,51 @@ const HIGHLIGHT_FEATURES: Record<string, Feature[]> = {
 
 export default function BillingPage() {
   const { data, isLoading } = useBilling();
+  const queryClient = useQueryClient();
+  const [pending, setPending] = useState<string | null>(null);
+
+  // Paddle fires `checkout.completed` as soon as payment succeeds, but the
+  // subscription is only real once the signed webhook lands. Refetch on a short
+  // delay rather than optimistically promoting the plan in the UI.
+  const paddle = usePaddle(
+    useCallback(
+      (e: unknown) => {
+        const name = (e as { name?: string })?.name;
+        if (name === "checkout.completed") {
+          toast.success("Payment received — activating your plan…");
+          setPending(null);
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ["billing"] }), 2500);
+        }
+        if (name === "checkout.closed") setPending(null);
+      },
+      [queryClient]
+    )
+  );
+
+  const paymentsReady = Boolean(paddle);
+  const hasPaidPlan =
+    data?.subscription?.status === "active" || data?.subscription?.status === "past_due";
+
+  async function startCheckout(planId: string) {
+    setPending(planId);
+    try {
+      const res = await api.post("/billing/checkout", { plan: planId });
+      // An existing subscriber is switched server-side; no overlay involved.
+      if (res.data?.changed) {
+        toast.success(res.data.message ?? "Plan updated.");
+        queryClient.invalidateQueries({ queryKey: ["billing"] });
+        setPending(null);
+        return;
+      }
+      paddle?.Checkout.open({ transactionId: res.data.transactionId });
+    } catch (err) {
+      const msg = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : "Could not start checkout.";
+      toast.error(msg);
+      setPending(null);
+    }
+  }
 
   if (isLoading || !data) {
     return (
@@ -243,18 +299,37 @@ export default function BillingPage() {
                     ))}
                   </ul>
 
-                  <Button
-                    className="rounded-lg mt-5 w-full"
-                    variant={plan.highlight ? "default" : "outline"}
-                    disabled={current}
-                    asChild={!current}
-                  >
-                    {current ? (
-                      <span>Current plan</span>
-                    ) : (
+                  {current ? (
+                    <Button className="rounded-lg mt-5 w-full" variant="outline" disabled>
+                      Current plan
+                    </Button>
+                  ) : paymentsReady ? (
+                    <Button
+                      className="rounded-lg mt-5 w-full"
+                      variant={plan.highlight ? "default" : "outline"}
+                      disabled={pending !== null}
+                      onClick={() => startCheckout(plan.id)}
+                    >
+                      {pending === plan.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Opening checkout…
+                        </>
+                      ) : hasPaidPlan ? (
+                        `Switch to ${plan.name}`
+                      ) : (
+                        `Subscribe to ${plan.name}`
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="rounded-lg mt-5 w-full"
+                      variant={plan.highlight ? "default" : "outline"}
+                      asChild
+                    >
                       <Link href={`/contact?plan=${plan.id}`}>Talk to us about {plan.name}</Link>
-                    )}
-                  </Button>
+                    </Button>
+                  )}
                 </div>
               );
             })}
@@ -263,9 +338,18 @@ export default function BillingPage() {
           <div className="rounded-lg border border-border bg-muted/40 p-3 mt-4 flex gap-2.5">
             <Clock className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Self-serve checkout isn&apos;t live yet — the payment rail (Razorpay for India, a
-              merchant of record internationally) is still being set up. Until then, plan changes go
-              through us directly rather than a button that pretends to charge you.
+              {paymentsReady ? (
+                <>
+                  Payments are handled by Paddle, our reseller — they appear on your statement and
+                  handle any VAT or GST. Cancelling stops the next renewal; you keep everything
+                  until the end of the period you&apos;ve already paid for.
+                </>
+              ) : (
+                <>
+                  Self-serve checkout isn&apos;t switched on yet. Until then, plan changes go through
+                  us directly rather than a button that pretends to charge you.
+                </>
+              )}
             </p>
           </div>
         </section>
