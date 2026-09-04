@@ -23,7 +23,8 @@ import { z } from "zod";
 const schema = z.object({
   adAccountId: z.string().min(1),
   ad_group_id: z.string().min(1),
-  name: z.string().trim().max(ACCOUNT_LIMITS.nameMax).optional(),
+  // `name` is REQUIRED by CreateAdBody (min 3), not optional.
+  name: z.string().trim().min(ACCOUNT_LIMITS.nameMin).max(ACCOUNT_LIMITS.nameMax),
   status: z.enum(["active", "paused"]),
   creative: z.object({
     type: z.enum(["chat_card", "product_ad_template"]).default("chat_card"),
@@ -34,10 +35,23 @@ const schema = z.object({
       .trim()
       .max(ACCOUNT_LIMITS.targetUrlMax)
       .refine((v) => /^https?:\/\//i.test(v), "Destination URL must start with http:// or https://"),
-    price: z.string().optional(),
+    price: z.string().max(100).optional(),
     file_id: z.string().optional(),
-    image_url: z.string().optional(),
+    /**
+     * Normalised square crop, fractions of the source image. chat_card only,
+     * and the API rejects it without a file_id.
+     */
+    image_crop: z
+      .object({
+        x: z.number().min(0).max(1),
+        y: z.number().min(0).max(1),
+        width: z.number().min(0).max(1),
+        height: z.number().min(0).max(1),
+      })
+      .optional(),
   }),
+  /** Appends tracking params to the destination, e.g. "utm_source=chatgpt". */
+  landing_page_configuration: z.object({ query_string_template: z.string().max(2048) }).optional(),
 });
 
 export const POST = withAdsRoute(async ({ userId, req }) => {

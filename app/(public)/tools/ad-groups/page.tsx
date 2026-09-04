@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Pause, Play, RefreshCw, Search, TriangleAlert } from "lucide-react";
+import { Pencil, Loader2, Pause, Play, RefreshCw, Search, TriangleAlert } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { adAccountStore } from "@/stores/adAccountStore";
@@ -277,6 +277,20 @@ export default function AdGroupsPage() {
                       </TableCell>
 
                       <TableCell className="text-right">
+                        {/* Full edit (hints, name, its ads) is step 2 of the
+                            builder. The inline bid edit above stays because
+                            changing one number should not need a whole flow. */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={`/tools/campaign/builder?campaignId=${g.campaignId}`}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit ad group and its ads</TooltipContent>
+                        </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button

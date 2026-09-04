@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Pause, Play, RefreshCw, Search } from "lucide-react";
+import { Pencil, ExternalLink, Pause, Play, RefreshCw, Search } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { adAccountStore } from "@/stores/adAccountStore";
@@ -248,6 +248,20 @@ export default function AdsPage() {
 
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {/* Editing an ad means editing its creative, which is
+                              step 3 of the builder — same screen, not a
+                              separate editor that could drift from it. */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={`/tools/campaign/builder?campaignId=${a.campaignId}`}
+                                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit ad and creative</TooltipContent>
+                          </Tooltip>
                           {a.targetUrl && (
                             <Tooltip>
                               <TooltipTrigger asChild>

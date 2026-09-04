@@ -171,7 +171,7 @@ export default function CampaignsPage() {
           </Button>
 
           <Button asChild size="sm" className="rounded-lg h-9">
-            <Link href="/tools/campaign/createCampaign">
+            <Link href="/tools/campaign/builder">
               <Plus className="w-4 h-4 mr-1.5" />
               New campaign
             </Link>
@@ -274,7 +274,7 @@ function CampaignRowView({
     <TableRow>
       <TableCell className="max-w-[260px]">
         <Link
-          href={`/tools/campaign/editCampaign?id=${row.campaignId}`}
+          href={`/tools/campaign/builder?campaignId=${row.campaignId}`}
           className="font-medium text-foreground hover:text-primary truncate block"
         >
           {row.campaignName}
@@ -354,7 +354,7 @@ function CampaignRowView({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
-                <Link href={`/tools/campaign/editCampaign?id=${row.campaignId}`}>
+                <Link href={`/tools/campaign/builder?campaignId=${row.campaignId}`}>
                   <Settings2 className="w-4 h-4" />
                 </Link>
               </Button>

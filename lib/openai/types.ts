@@ -262,6 +262,15 @@ export type UpdateAdGroupBody = Partial<Omit<CreateAdGroupBody, "campaign_id" | 
 
 export type AdCreativeType = "chat_card" | "product_ad_template";
 
+/** Normalised square crop (fractions of the EXIF-oriented source image). */
+export type AdImageCrop = { x: number; y: number; width: number; height: number };
+
+/**
+ * Creative as RETURNED by the API. `image_url` appears on reads (the rendered
+ * asset) but is not part of CreateAdCreativeParams, so it must never be sent —
+ * `fields[]` proved this API rejects unknown members rather than ignoring them.
+ * Requests use AdCreativeInput below.
+ */
 export type AdCreative = {
   type: AdCreativeType | (string & {});
   /** 3-50 chars. */
@@ -271,9 +280,23 @@ export type AdCreative = {
   price?: string;
   file_id?: string;
   image_url?: string | null;
-  image_crop?: unknown;
+  image_crop?: AdImageCrop | null;
   /** <= 2048 chars. */
   target_url: string | null;
+};
+
+/**
+ * Creative as ACCEPTED on create/update — exactly CreateAdCreativeParams.
+ * `image_crop` is chat_card only and requires a file_id.
+ */
+export type AdCreativeInput = {
+  type: AdCreativeType;
+  title: string;
+  body: string;
+  price?: string;
+  target_url?: string;
+  file_id?: string;
+  image_crop?: AdImageCrop;
 };
 
 export type Ad = {
@@ -290,17 +313,25 @@ export type Ad = {
   serving_issues?: ServingIssue[];
 };
 
+/** Appends a query string to the destination URL, for tracking parameters. */
+export type LandingPageConfiguration = { query_string_template: string };
+
 export type CreateAdBody = {
   ad_group_id: string;
-  name?: string;
+  /** Required, 3-1000 chars — not optional, despite reading like a label. */
+  name: string;
   status: "active" | "paused";
-  creative: Omit<AdCreative, "image_crop">;
+  creative: AdCreativeInput;
+  landing_page_configuration?: LandingPageConfiguration;
 };
 
 export type UpdateAdBody = {
   name?: string;
+  /** Update also accepts `archived`, which create does not. */
   status?: EntityStatus;
-  creative?: Omit<AdCreative, "image_crop">;
+  creative?: AdCreativeInput;
+  /** Explicit null clears the configuration. */
+  landing_page_configuration?: LandingPageConfiguration | null;
 };
 
 // ── Insights ────────────────────────────────────────────────────────────────
