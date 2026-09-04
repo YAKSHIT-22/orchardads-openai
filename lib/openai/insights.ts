@@ -229,9 +229,9 @@ export async function getConversions(
     ...(opts.breakdown ? { breakdown: opts.breakdown } : {}),
     // Same rule as getConversionsWith: group_by_entity is only legal alongside
     // entity_ids, and a 400 here reads downstream as "zero conversions".
-    ...(opts.entityIds?.length
-      ? { entity_ids: opts.entityIds, group_by_entity: true }
-      : {}),
+    ...(opts.entityIds?.length ? { entity_ids: opts.entityIds } : {}),
+    // Must be explicit: the server defaults it to true and then demands ids.
+    group_by_entity: Boolean(opts.entityIds?.length),
     include_zero_rows: opts.includeZeroRows ?? true,
   });
   return res?.data ?? [];
@@ -257,13 +257,17 @@ export async function getConversionsWith(
   // site swallows failures with `.catch(() => [])`, so an empty entity list
   // produced a 400 that was silently read as "no conversions". Every CPA, CVR,
   // revenue and ROAS derived from it would have been wrong rather than absent.
-  // Group by entity only when we can name the entities.
+  // `group_by_entity` defaults to TRUE server-side, so OMITTING it still fails
+  // with "entity_ids must be provided" — it has to be explicitly false when we
+  // have no ids. Verified: false returns one account-level aggregate row;
+  // entity_ids + true returns one row per entity.
   const grouped = Boolean(opts.entityIds?.length);
   const res = await ConversionService.insightsWith(connection, {
     aggregation_level: opts.aggregationLevel,
     time_ranges: [enc(opts.timeRange)],
     time_granularity: opts.daily ? "daily" : "none",
-    ...(grouped ? { entity_ids: opts.entityIds, group_by_entity: true } : {}),
+    ...(grouped ? { entity_ids: opts.entityIds } : {}),
+    group_by_entity: grouped,
     include_zero_rows: true,
   });
   return res?.data ?? [];

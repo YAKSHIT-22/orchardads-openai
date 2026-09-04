@@ -181,8 +181,27 @@ export async function GET(req: Request) {
     include_zero_rows: true,
   });
 
+  // Exactly the app's deliveryTotals call — dump EVERY row to find the duplicate.
+  let dupRows: unknown = null;
+  try {
+    const r = await adsFetchWithConnection<{ data?: unknown[] }>(conn, "/ad_account/insights", {
+      query: {
+        aggregation_level: "campaign",
+        time_granularity: "none",
+        "time_ranges[]": [tr],
+        "fields[]": campaignFields,
+        "includes[]": ["zero_impression_items"],
+        limit: 500,
+      } as never,
+    });
+    dupRows = r?.data;
+  } catch (e) {
+    dupRows = { error: String((e as Error).message).slice(0, 300) };
+  }
+
   return NextResponse.json(
     {
+      deliveryTotalsRows: dupRows,
       account: {
         adAccountId: conn.adAccountId,
         name: conn.adAccountName,

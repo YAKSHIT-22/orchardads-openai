@@ -168,8 +168,11 @@ export default function CampaignBuilderPage() {
     queryKey: ["builder-adgroups", adAccountId, campaignId],
     enabled: Boolean(adAccountId && campaignId),
     queryFn: async () => {
-      const res = await api.post("/adgroups/getall", { adAccountId, campaignId });
-      return (res.data?.data ?? res.data?.adGroups ?? []) as any[];
+      // The route returns the raw ListEnvelope under `adGroups`, i.e.
+      // { object, data: [...] } — not an array. Unwrap it, or the list renders
+      // empty while the API happily returned rows.
+      const env = res.data?.adGroups;
+      return (Array.isArray(env) ? env : (env?.data ?? [])) as any[];
     },
   });
 
@@ -227,7 +230,8 @@ export default function CampaignBuilderPage() {
     enabled: Boolean(adAccountId && selectedGroupId),
     queryFn: async () => {
       const res = await api.post("/ads/getall", { adAccountId, adGroupId: selectedGroupId });
-      return (res.data?.data ?? res.data?.ads ?? []) as any[];
+      const env = res.data?.ads;
+      return (Array.isArray(env) ? env : (env?.data ?? [])) as any[];
     },
   });
 
