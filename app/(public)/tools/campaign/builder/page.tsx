@@ -34,6 +34,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { CreativeFields, type CreativeDraft } from "@/components/user/forms/CreativeFields";
+import { CreativePreview } from "@/components/user/forms/CreativePreview";
 import { adsErrorToast } from "@/lib/openai/errorToast";
 import { ACCOUNT_LIMITS } from "@/utils/variableConstant";
 import { toast } from "sonner";
@@ -42,7 +43,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 const MICROS = 1_000_000;
 const toMicros = (v: string) => Math.round(parseFloat(v || "0") * MICROS);
@@ -81,7 +82,8 @@ export default function CampaignBuilderPage() {
   const router = useRouter();
   const params = useSearchParams();
   const queryClient = useQueryClient();
-  const { adAccountId } = adAccountStore();
+  const { adAccountId, connections, selectedIndex } = adAccountStore();
+  const accountName = connections?.[selectedIndex ?? 0]?.adAccountName ?? null;
 
   const editingId = params.get("campaignId");
   const [campaignId, setCampaignId] = useState<string | null>(editingId);
@@ -212,6 +214,17 @@ export default function CampaignBuilderPage() {
     if (!selectedGroupId && groups.length) setSelectedGroupId(String(groups[0].id));
   }, [groups, selectedGroupId]);
 
+  // Opening an existing campaign should land on its ad groups, not on the
+  // campaign form — you came to change something inside it. Only once, so it
+  // doesn't fight the user's own navigation afterwards.
+  const [jumped, setJumped] = useState(false);
+  useEffect(() => {
+    if (!jumped && editingId && groups.length > 0) {
+      setStep(2);
+      setJumped(true);
+    }
+  }, [jumped, editingId, groups.length]);
+
   // ── Step 3: ads ───────────────────────────────────────────────────────────
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
   const [adName, setAdName] = useState("");
@@ -293,19 +306,90 @@ export default function CampaignBuilderPage() {
           {campaignId && <Badge variant="secondary" className="font-mono text-xs shrink-0">{campaignId}</Badge>}
         </div>
 
-        {/* Steps */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-card px-4 py-3">
-          <button onClick={() => setStep(1)} className="text-left">
-            <StepDot n={1} label="Campaign" icon={Megaphone} active={step === 1} done={Boolean(campaignId) && step > 1} />
-          </button>
-          <button onClick={() => canStep2 && setStep(2)} disabled={!canStep2} className="text-left disabled:opacity-40">
-            <StepDot n={2} label="Ad groups" icon={Layers} active={step === 2} done={groups.length > 0 && step > 2} />
-          </button>
-          <button onClick={() => canStep3 && setStep(3)} disabled={!canStep3} className="text-left disabled:opacity-40">
-            <StepDot n={3} label="Ads" icon={Tags} active={step === 3} done={false} />
-          </button>
-        </div>
+        <div className="grid lg:grid-cols-[15rem_1fr] gap-6 items-start">
+          {/* Structure rail.
+              Editing used to open on step 1 with no sign that the campaign
+              already had an ad group and an ad — they existed, but nothing on
+              screen said so until you clicked forward twice. Ads Manager keeps
+              the whole tree visible; so does this, and it doubles as the step
+              navigator. */}
+          <aside className="rounded-xl border border-border bg-card p-3 lg:sticky lg:top-4">
+            <button
+              onClick={() => setStep(1)}
+              className={[
+                "w-full text-left rounded-lg px-2.5 py-2 flex items-center gap-2 text-sm",
+                step === 1 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60",
+              ].join(" ")}
+            >
+              <Megaphone className="w-4 h-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{c.name?.trim() || "Untitled campaign"}</span>
+            </button>
 
+            <div className="mt-1 pl-2 border-l border-border ml-3.5 flex flex-col">
+              {groupsQuery.isLoading && campaignId && (
+                <span className="px-2.5 py-2 text-xs text-muted-foreground">Loading ad groups…</span>
+              )}
+              {groups.map((ag) => {
+                const on = String(ag.id) === selectedGroupId;
+                return (
+                  <div key={ag.id} className="flex flex-col">
+                    <button
+                      onClick={() => { setSelectedGroupId(String(ag.id)); setStep(2); }}
+                      className={[
+                        "text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-sm",
+                        on && step === 2 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60",
+                      ].join(" ")}
+                    >
+                      <Layers className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{ag.name}</span>
+                    </button>
+                    {on && (
+                      <div className="pl-4 flex flex-col">
+                        {ads.map((ad) => (
+                          <button
+                            key={ad.id}
+                            onClick={() => { setStep(3); }}
+                            className="text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-xs hover:bg-accent/60"
+                          >
+                            <Tags className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{ad.name ?? ad.creative?.title ?? "Untitled ad"}</span>
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => { resetAd(); setStep(3); }}
+                          className="text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-xs text-muted-foreground hover:bg-accent/60"
+                        >
+                          <Plus className="w-3.5 h-3.5 shrink-0" /> New ad
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {campaignId && (
+                <button
+                  onClick={() => { resetGroup(); setStep(2); }}
+                  className="text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-sm text-muted-foreground hover:bg-accent/60"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" /> New ad group
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => canStep3 && setStep(4)}
+              disabled={!canStep3}
+              className={[
+                "mt-2 w-full text-left rounded-lg px-2.5 py-2 flex items-center gap-2 text-sm disabled:opacity-40",
+                step === 4 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60",
+              ].join(" ")}
+            >
+              <Check className="w-4 h-4 shrink-0 text-muted-foreground" />
+              Review
+            </button>
+          </aside>
+
+          <div className="min-w-0 flex flex-col gap-4">
         {/* ── Step 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
           <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
@@ -526,8 +610,15 @@ export default function CampaignBuilderPage() {
               </div>
 
               <div className="h-px bg-border" />
-              <h3 className="text-sm font-semibold">Creative</h3>
-              <CreativeFields value={creative} onChange={setCreative} />
+              <div className="grid lg:grid-cols-[1fr_18rem] gap-6 items-start">
+                <div className="flex flex-col gap-4 min-w-0">
+                  <h3 className="text-sm font-semibold">Creative</h3>
+                  <CreativeFields value={creative} onChange={setCreative} />
+                </div>
+                <div className="lg:sticky lg:top-4">
+                  <CreativePreview creative={creative} advertiser={accountName} />
+                </div>
+              </div>
 
               <div className="flex justify-end">
                 <Button onClick={() => saveAd.mutate()}
@@ -544,10 +635,86 @@ export default function CampaignBuilderPage() {
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
-              <Button variant="outline" onClick={() => router.push("/tools/campaign")}>Done</Button>
+              <Button onClick={() => setStep(4)}>Next: Review</Button>
             </div>
           </div>
         )}
+
+        {/* ── Review ──────────────────────────────────────────────────────── */}
+        {step === 4 && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
+              <h2 className="text-sm font-semibold">Campaign summary</h2>
+
+              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <div><dt className="text-muted-foreground text-xs">Campaign</dt><dd>{c.name || "—"}</dd></div>
+                <div><dt className="text-muted-foreground text-xs">Status</dt><dd className="capitalize">{c.status}</dd></div>
+                <div><dt className="text-muted-foreground text-xs">Bidding</dt><dd className="capitalize">{c.bidding_type}</dd></div>
+                <div>
+                  <dt className="text-muted-foreground text-xs">Lifetime budget</dt>
+                  <dd>{c.lifetime || "—"}{c.daily ? ` · ${c.daily}/day` : ""}</dd>
+                </div>
+              </dl>
+
+              <div className="h-px bg-border" />
+
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-medium">
+                  {groups.length} ad group{groups.length === 1 ? "" : "s"}
+                </h3>
+                {groups.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    A campaign with no ad group cannot serve — Serving Doctor will report it as
+                    <span className="font-mono"> campaign_has_no_ad_groups</span>.
+                  </p>
+                )}
+                {groups.map((ag) => (
+                  <div key={ag.id} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="truncate">{ag.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0 capitalize">{ag.status}</span>
+                  </div>
+                ))}
+              </div>
+
+              {selectedGroupId && (
+                <>
+                  <div className="h-px bg-border" />
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-sm font-medium">
+                      {ads.length} ad{ads.length === 1 ? "" : "s"} in the selected ad group
+                    </h3>
+                    {ads.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        An ad group with no ad cannot serve either.
+                      </p>
+                    )}
+                    {ads.map((ad) => (
+                      <div key={ad.id} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="truncate">{ad.name ?? ad.creative?.title}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {ad.review?.status ? `review: ${ad.review.status}` : ad.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Everything here is already saved — each step commits on its own, because the API
+                has no transaction spanning campaign, ad group and ad. This is a check, not a
+                submit.
+              </p>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep(3)}>Back</Button>
+              <Button onClick={() => router.push("/tools/campaign")}>Done</Button>
+            </div>
+          </div>
+        )}
+          </div>
+        </div>
       </div>
     </section>
   );
