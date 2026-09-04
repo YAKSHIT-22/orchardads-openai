@@ -17,12 +17,13 @@ import type { ActionType, StrategyScope, Suggestion } from "@/lib/autopilot/type
 import {
   type StrategyRow, type StrategyForm, type RuleForm, type CondForm,
   defaultForm, emptyRule, emptyCondition, toApiRules, fromApiRules, ruleFormSentence,
-  ALERT_METRICS, metricDef, OPERATORS, ACTION_META, scopeDef,
+  ALERT_METRICS, metricDef, OPERATORS, ACTION_META, ACTION_BADGE, ACTION_SHORT, scopeDef,
 } from "@/components/autopilot/shared";
 import { SuggestionsPanel } from "@/components/autopilot/suggestions";
 import { SCOPES } from "@/lib/autopilot/scopes";
 import { useCampaignList } from "@/components/optimize/ui";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,12 +38,39 @@ import {
 import { InfoHint } from "@/components/ui/info-hint";
 import { cn } from "@/lib/utils";
 import {
-  ChevronDown, ChevronLeft, ChevronRight, Info, Loader2, Lock, Plus, Save,
-  ShieldAlert, Sparkles, Trash2, TriangleAlert, X, Zap,
+  ChevronDown, ChevronLeft, ChevronRight, Clock, Globe2, Info, Layers, ListChecks,
+  Loader2, Lock, Megaphone, Plus, Save, ShieldAlert, Sparkles, Tags, Trash2,
+  TriangleAlert, X, Zap, type LucideIcon,
 } from "lucide-react";
 
 const STEPS = ["Scope & basics", "Rules", "Preview", "Automate & save"] as const;
 export const AUTOMATION_STEP = 3;
+
+/** Icon per step — Scope & basics uses the chosen scope's own icon so the
+ * rail reads as the strategy's actual shape, not a generic 1-2-3-4. */
+const STEP_ICON: Record<number, LucideIcon> = {
+  1: ListChecks,
+  2: Zap,
+  3: Clock,
+};
+
+const SCOPE_ICON: Record<StrategyScope, LucideIcon> = {
+  CAMPAIGN: Megaphone,
+  ADGROUP: Layers,
+  AD: Tags,
+  GEO: Globe2,
+};
+
+/** Plain-language automation state, reused by both the rail and step 4. */
+function automationSummary(f: Pick<StrategyForm, "automated" | "frequency" | "autoApply" | "notifyEmail">): {
+  text: string;
+  amber: boolean;
+} {
+  if (!f.automated) return { text: "Manual — run on demand", amber: false };
+  const freq = f.frequency.charAt(0) + f.frequency.slice(1).toLowerCase();
+  if (f.autoApply) return { text: `Auto · ${freq} · auto-applies`, amber: true };
+  return { text: `Auto · ${freq} · ${f.notifyEmail ? "notifies" : "records"}`, amber: false };
+}
 
 function Field({
   label,
@@ -208,6 +236,15 @@ export function StrategyBuilder({
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
 
+  /** Jump to any step from the rail — same forward-validation guard the old
+   * top stepper used, just shared so the rail can drive navigation too. */
+  const jumpTo = (i: number) => {
+    if (i <= step) return void setStep(i);
+    const err = validateStep(0) || (i > 1 ? validateStep(1) : null);
+    if (err) return void toast.error(err);
+    setStep(i);
+  };
+
   /* ── Preview (real run, unsaved strategy) ── */
 
   const previewMutation = useMutation({
@@ -284,8 +321,91 @@ export function StrategyBuilder({
 
   /* ── Render ── */
 
+  const automation = automationSummary(form);
+  const ScopeIcon = SCOPE_ICON[form.scope] || Megaphone;
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid xl:grid-cols-[18rem_1fr] gap-6 items-start">
+      {/* Structure rail — a strategy is scope + rules + automation, not four
+          arbitrary steps. This stays visible and clickable regardless of
+          which step is open, the same job the campaign builder's rail does. */}
+      <aside className="rounded-xl border border-border bg-card p-3 xl:sticky xl:top-4 flex flex-col gap-1">
+        <button
+          onClick={() => jumpTo(0)}
+          className={cn(
+            "w-full text-left rounded-lg px-2.5 py-2 flex items-start gap-2 text-sm",
+            step === 0 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60"
+          )}
+        >
+          <ScopeIcon className="w-4 h-4 shrink-0 text-muted-foreground mt-0.5" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{form.name.trim() || "Untitled strategy"}</span>
+            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+              {scopeDef(form.scope)?.label || form.scope} scope
+              {editing && <Lock className="w-3 h-3 inline-block ml-1 -mt-px" />}
+            </span>
+          </span>
+        </button>
+
+        <div className="mt-1 pl-2 border-l border-border ml-3.5 flex flex-col">
+          <button
+            onClick={() => jumpTo(1)}
+            className={cn(
+              "text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-sm",
+              step === 1 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60"
+            )}
+          >
+            <ListChecks className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+            <span className="flex-1">Rules</span>
+            <span className="text-xs text-muted-foreground tabular-nums">{form.rules.length}</span>
+          </button>
+          <div className="pl-4 flex flex-col">
+            {form.rules.map((r, ri) => (
+              <button
+                key={ri}
+                onClick={() => jumpTo(1)}
+                title={ruleFormSentence(r, currency)}
+                className="text-left rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-xs hover:bg-accent/60 text-muted-foreground"
+              >
+                <Badge variant="outline" className={cn("text-[9px] px-1 py-0 shrink-0", ACTION_BADGE[r.actionType])}>
+                  {ACTION_SHORT[r.actionType] || r.actionType}
+                </Badge>
+                <span className="truncate">{r.name.trim() || `Rule ${ri + 1}`}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={() => jumpTo(2)}
+          className={cn(
+            "mt-1 w-full text-left rounded-lg px-2.5 py-2 flex items-center gap-2 text-sm",
+            step === 2 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60"
+          )}
+        >
+          <Zap className="w-4 h-4 shrink-0 text-muted-foreground" />
+          <span className="flex-1">Preview</span>
+          <span className="text-xs text-muted-foreground">{preview ? `${preview.length} match${preview.length === 1 ? "" : "es"}` : "—"}</span>
+        </button>
+
+        <button
+          onClick={() => jumpTo(3)}
+          className={cn(
+            "w-full text-left rounded-lg px-2.5 py-2 flex items-start gap-2 text-sm",
+            step === 3 ? "bg-accent text-foreground font-medium" : "hover:bg-accent/60"
+          )}
+        >
+          <Clock className="w-4 h-4 shrink-0 text-muted-foreground mt-0.5" />
+          <span className="min-w-0 flex-1">
+            <span className="block">Automate &amp; save</span>
+            <span className={cn("block text-xs font-normal mt-0.5", automation.amber ? "text-amber-600" : "text-muted-foreground")}>
+              {automation.text}
+            </span>
+          </span>
+        </button>
+      </aside>
+
+      <div className="flex flex-col gap-4 min-w-0">
       <Card className="border rounded-xl">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3">
@@ -293,36 +413,9 @@ export function StrategyBuilder({
               <CardTitle className="text-sm font-semibold">
                 {editing ? `Edit strategy — ${editing.name}` : "New strategy"}
               </CardTitle>
-              {/* Stepper */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                {STEPS.map((label, i) => (
-                  <button
-                    key={label}
-                    onClick={() => {
-                      if (i <= step) return void setStep(i);
-                      const err = validateStep(0) || (i > 1 ? validateStep(1) : null);
-                      if (err) return void toast.error(err);
-                      setStep(i);
-                    }}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                      i === step
-                        ? "border-primary/40 bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:border-primary/30"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "w-4 h-4 rounded-full text-[9px] flex items-center justify-center",
-                        i === step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {i + 1}
-                    </span>
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Step {step + 1} of {STEPS.length} · <span className="text-foreground font-medium">{STEPS[step]}</span>
+              </p>
             </div>
             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onClose} aria-label="Close builder">
               <X className="w-4 h-4" />
@@ -333,7 +426,7 @@ export function StrategyBuilder({
         <CardContent className="flex flex-col gap-5">
           {/* ── Step 1: scope & basics ── */}
           {step === 0 && (
-            <>
+            <div className="flex flex-col gap-5 max-w-3xl">
               {templates.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
@@ -468,12 +561,12 @@ export function StrategyBuilder({
                   </DropdownMenu>
                 </Field>
               </div>
-            </>
+            </div>
           )}
 
           {/* ── Step 2: rules ── */}
           {step === 1 && (
-            <>
+            <div className="flex flex-col gap-4 max-w-4xl">
               {form.rules.map((rule, ri) => {
                 const allowedActions = currentScope?.actions || ["NOTIFY"];
                 const meta = ACTION_META[rule.actionType];
@@ -708,7 +801,7 @@ export function StrategyBuilder({
               >
                 <Plus className="w-3.5 h-3.5" /> Add rule
               </Button>
-            </>
+            </div>
           )}
 
           {/* ── Step 3: preview ── */}
@@ -837,6 +930,7 @@ export function StrategyBuilder({
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

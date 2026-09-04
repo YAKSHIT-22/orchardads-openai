@@ -192,7 +192,7 @@ export function actionPhrase(action: Rule["action"], currency: string): string {
     case "ADJUST_BID":
     case "ADJUST_BUDGET": {
       const pct = Math.abs(Number(action.amount) || 0);
-      const noun = action.type === "ADJUST_BID" ? "bid" : "daily budget";
+      const noun = action.type === "ADJUST_BID" ? "bid" : "lifetime budget";
       base = `${(Number(action.amount) || 0) < 0 ? "lower" : "raise"} ${noun} ${pct}%`;
       break;
     }
@@ -200,7 +200,7 @@ export function actionPhrase(action: Rule["action"], currency: string): string {
       base = `set bid to ${money(currency || "USD", Number(action.amount) || 0)}`;
       break;
     case "SET_BUDGET":
-      base = `set daily budget to ${money(currency || "USD", Number(action.amount) || 0)}`;
+      base = `set lifetime budget to ${money(currency || "USD", Number(action.amount) || 0)}`;
       break;
     case "PAUSE":
       base = "pause";

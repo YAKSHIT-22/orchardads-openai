@@ -63,9 +63,9 @@ export const SEVERITY_META: Record<
 > = {
   INFO: {
     label: "Info",
-    dot: "bg-sky-500",
-    stripe: "bg-sky-500",
-    badge: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+    dot: "bg-zinc-500",
+    stripe: "bg-zinc-500",
+    badge: "border-zinc-600/30 bg-zinc-600/10 text-zinc-800 dark:text-zinc-400",
   },
   WARNING: {
     label: "Warning",
@@ -84,7 +84,7 @@ export const SEVERITY_META: Record<
 export const KIND_META: Record<AlertKind, { label: string; badge: string }> = {
   METRIC: { label: "Metric", badge: "border-primary/30 bg-primary/10 text-primary" },
   BUDGET: { label: "Budget", badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" },
-  ANOMALY: { label: "Anomaly", badge: "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-400" },
+  ANOMALY: { label: "Anomaly", badge: "text-muted-foreground" },
 };
 
 export const SCOPE_LABEL: Record<AlertScope, string> = {

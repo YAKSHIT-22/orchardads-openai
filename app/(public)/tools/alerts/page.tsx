@@ -45,8 +45,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
-  Activity, AlarmClock, BellRing, CheckCheck, CircleCheck, EyeOff, Inbox, Loader2,
-  MoreHorizontal, Pencil, Play, Plus, Radar, Sparkles, Trash2, Wallet, X, Zap,
+  Activity, AlarmClock, BellRing, CheckCheck, CircleCheck, Crosshair, EyeOff, Inbox, Loader2,
+  MoreHorizontal, Pencil, Play, Plus, Radar, SlidersHorizontal, Sparkles, Trash2, Wallet, X, Zap,
+  type LucideIcon,
 } from "lucide-react";
 
 /* ── Form model ────────────────────────────────────────────────────────────── */
@@ -194,6 +195,29 @@ function Field({
       </Label>
       {children}
       {hint && <p className="text-[11px] text-muted-foreground leading-snug">{hint}</p>}
+    </div>
+  );
+}
+
+/** Groups the form into "what it watches / what trips it / what happens" so
+ * the scope-dependent field set reads as three deliberate questions instead
+ * of a flat wall of selects where fields silently appear and disappear. */
+function FieldSection({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide inline-flex items-center gap-1.5">
+        <Icon className="w-3 h-3" />
+        {label}
+      </p>
+      {children}
     </div>
   );
 }
@@ -600,9 +624,14 @@ export default function OrchardWatchPage() {
               />
             )}
 
+            {/* Create/edit form beside the list, not pushed above it — the
+                list stays visible instead of scrolling out of view while a
+                long, scope-dependent form is open. Below xl both still stack,
+                form first, exactly as before. */}
+            <div className={cn(formOpen ? "grid xl:grid-cols-[26rem_1fr] gap-6 items-start" : "flex flex-col gap-5")}>
             {/* Create / edit card */}
             {formOpen && (
-              <Card className="border rounded-xl">
+              <Card className="border rounded-xl xl:sticky xl:top-4">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -666,7 +695,9 @@ export default function OrchardWatchPage() {
                   </InfoHint>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-5">
+                  <FieldSection icon={Crosshair} label="What it watches">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Name">
                       <Input
                         value={form.name}
@@ -797,7 +828,13 @@ export default function OrchardWatchPage() {
                         </Select>
                       </Field>
                     )}
+                  </div>
+                  </FieldSection>
 
+                  <div className="h-px bg-border" />
+
+                  <FieldSection icon={SlidersHorizontal} label="What trips it">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Condition + threshold */}
                     {form.kind === "METRIC" && (
                       <Field
@@ -935,7 +972,13 @@ export default function OrchardWatchPage() {
                         />
                       </Field>
                     )}
+                  </div>
+                  </FieldSection>
 
+                  <div className="h-px bg-border" />
+
+                  <FieldSection icon={Zap} label="What happens">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Severity / action / email */}
                     <Field
                       label="Severity"
@@ -984,6 +1027,8 @@ export default function OrchardWatchPage() {
                         <Switch checked={form.notifyEmail} onCheckedChange={(v) => set("notifyEmail", v)} />
                       </div>
                     </Field>
+                  </div>
+                  </FieldSection>
                   </div>
 
                   <div className="flex items-center justify-end gap-2 border-t mt-1 pt-3">
@@ -1125,6 +1170,7 @@ export default function OrchardWatchPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </>
         ) : (
           /* ── Triggered tab ── */
