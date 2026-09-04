@@ -74,6 +74,20 @@ export type EngineOptions = {
   minConversions?: number;
   /** Spend floor below which an entity isn't worth a recommendation. */
   minSpendMicros?: number;
+  /**
+   * Drop the current account-local day before reasoning.
+   *
+   * The OpenAI Ads insights endpoints document that "attribution metrics for
+   * the current account-local day are preliminary and may change as conversions
+   * are processed". A partial day therefore contributes clicks and spend while
+   * its conversions are still landing, which biases every conversion-shaped
+   * judgement pessimistically — most damagingly the "spent with no conversions"
+   * rule, which would tell someone to cut a campaign that in fact converted.
+   *
+   * Defaults on. Turn it off only for a view that is explicitly labelled as
+   * today-inclusive and preliminary.
+   */
+  excludeToday?: boolean;
 };
 
 type EntityMetrics = {
@@ -87,16 +101,31 @@ type EntityMetrics = {
 
 export async function generateRecommendations(
   connection: OpenAiAdsConnection,
-  { days = 30, minConversions = 5, minSpendMicros = 5_000_000 }: EngineOptions = {}
+  {
+    days = 30,
+    minConversions = 5,
+    minSpendMicros = 5_000_000,
+    excludeToday = true,
+  }: EngineOptions = {}
 ): Promise<Candidate[]> {
   const since = new Date(Date.now() - days * 86_400_000);
+
+  // Upper bound is exclusive of the account-local today when excludeToday is
+  // set — see the option's comment. Computed in the ACCOUNT's timezone, not the
+  // server's: "today" in Los Angeles is not "today" in Delhi, and cutting the
+  // wrong day either keeps preliminary data or discards a complete one.
+  const accountToday = todayIn(connection.timezone || "UTC");
+  const until = excludeToday ? new Date(`${accountToday}T00:00:00.000Z`) : null;
 
   const [campaigns, adGroups, ads, facts] = await Promise.all([
     prisma.cachedCampaign.findMany({ where: { connectionId: connection.id } }),
     prisma.cachedAdGroup.findMany({ where: { connectionId: connection.id } }),
     prisma.cachedAd.findMany({ where: { connectionId: connection.id } }),
     prisma.metricFact.findMany({
-      where: { adAccountId: connection.adAccountId, date: { gte: since } },
+      where: {
+        adAccountId: connection.adAccountId,
+        date: until ? { gte: since, lt: until } : { gte: since },
+      },
     }),
   ]);
 

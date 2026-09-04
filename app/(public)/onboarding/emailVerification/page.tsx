@@ -91,7 +91,7 @@ const Page = () => {
     },
     onSuccess: () => {
       toast.success("Email verified! Let's connect your OpenAI Ads account…");
-      router.push("/onboarding/generateKey");
+      router.push("/onboarding/connect");
     },
     onError: (err: any) => {
       handleExpired()

@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
 import { clientIp } from "@/lib/rateLimit";
 import { NextResponse } from "next/server";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
+import { JWT_SECRET } from "@/utils/variableConstant";
 
 /**
  * Disconnect one ad account.
@@ -33,6 +36,36 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
       userAgent: req.headers.get("user-agent") ?? undefined,
     },
   });
+
+  // Mirror of the connect path: the session token carries hasAccessData, and
+  // removing the last connection makes it false. Without reissuing, middleware
+  // would keep letting the user into /tools/* with nothing connected.
+  const remaining = await prisma.openAiAdsConnection.count({ where: { userId } });
+  const owner = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true, role: true, verified: true },
+  });
+  if (owner) {
+    const token = await new SignJWT({
+      name: owner.name,
+      userId,
+      email: owner.email,
+      role: owner.role,
+      emailVerified: owner.verified,
+      hasAccessData: remaining > 0,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1d")
+      .sign(JWT_SECRET);
+
+    (await cookies()).set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
+  }
 
   return NextResponse.json(
     {

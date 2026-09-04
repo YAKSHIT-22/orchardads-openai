@@ -7,10 +7,34 @@ import { jwtVerify } from "jose";
 const PROTECTED_USER_ROUTES = ["/tools"];
 const PROTECTED_ADMIN_ROUTES = ["/admin"];
 const AUTH_ROUTES = ["/signin", "/signup"];
+/**
+ * Reachable even when no ad account is connected yet.
+ *
+ * Every other /tools/* path bounces an unconnected user to /onboarding/connect.
+ * Billing must not: a trial that expires before a key is pasted, or a customer
+ * who removed their last connection, would otherwise be unable to reach the one
+ * page where they can pay. The PlanGate upgrade wall links here too, so without
+ * this the "See plans" button is a redirect loop.
+ */
+const CONNECTION_EXEMPT_TOOLS = ["/tools/billing"];
 const ONBOARDING_ROUTES = [
   "/onboarding/emailVerification",
   "/onboarding/connect",
 ];
+
+/**
+ * Clear the session cookie and bounce to sign-in.
+ *
+ * `request.cookies.delete()` mutates the *incoming* request only — it never
+ * reaches the browser, so a token that fails verification used to survive and
+ * fail again on every subsequent navigation. The delete has to be applied to
+ * the response.
+ */
+function clearTokenAndSignIn(request: NextRequest) {
+  const res = NextResponse.redirect(new URL("/signin", request.url));
+  res.cookies.delete("token");
+  return res;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -46,9 +70,8 @@ export async function middleware(request: NextRequest) {
       } else if (role === "USER") {
         return NextResponse.redirect(new URL("/tools/dashboard", request.url));
       }
-    } catch (err) {
-      request.cookies.delete("token");
-      return NextResponse.redirect(new URL("/signin", request.url));
+    } catch {
+      return clearTokenAndSignIn(request);
     }
   }
 
@@ -63,10 +86,10 @@ export async function middleware(request: NextRequest) {
       );
 
       if (payload.emailVerified === "UNVERIFIED") {
-        if (
-          pathname !== "/onboarding/emailVerification" &&
-          pathname !== "/onboarding/connect"
-        ) {
+        // Connect is NOT exempt here: pasting a live OpenAI Ads key is the most
+        // sensitive thing an account can do, and it should not be possible
+        // before the address that owns the account has been proven.
+        if (pathname !== "/onboarding/emailVerification") {
           return NextResponse.redirect(
             new URL("/onboarding/emailVerification", request.url)
           );
@@ -84,10 +107,8 @@ export async function middleware(request: NextRequest) {
         }
         return NextResponse.redirect(new URL("/tools/dashboard", request.url));
       }
-    } catch (err) {
-      console.error("JWT verification failed:", err);
-      request.cookies.delete("token");
-      return NextResponse.redirect(new URL("/signin", request.url));
+    } catch {
+      return clearTokenAndSignIn(request);
     }
   }
 
@@ -133,6 +154,7 @@ export async function middleware(request: NextRequest) {
 
       if (
         PROTECTED_USER_ROUTES.some((route) => pathname.startsWith(route)) &&
+        !CONNECTION_EXEMPT_TOOLS.some((route) => pathname.startsWith(route)) &&
         role === "USER" &&
         hasAccessData === false
       ) {
@@ -142,10 +164,8 @@ export async function middleware(request: NextRequest) {
       }
 
       return NextResponse.next();
-    } catch (err) {
-      console.error("JWT verification failed:", err);
-      request.cookies.delete("token");
-      return NextResponse.redirect(new URL("/signin", request.url));
+    } catch {
+      return clearTokenAndSignIn(request);
     }
   }
 

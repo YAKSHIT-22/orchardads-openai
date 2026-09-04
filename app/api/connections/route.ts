@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
+import { JWT_SECRET } from "@/utils/variableConstant";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError, adsFetchWithConnection } from "@/lib/openai/client";
@@ -62,6 +65,19 @@ export const GET = withAdsRoute(async ({ userId }) => {
 });
 
 export const POST = withAdsRoute(async ({ userId, req }) => {
+  // Pasting a live OpenAI Ads key is the most sensitive action in the product,
+  // so the address owning the account must be proven first. Read `verified` from
+  // the database rather than the JWT: the token is issued for a day and would
+  // still say UNVERIFIED after a verification, and stale-in-the-other-direction
+  // is exactly the case worth being strict about.
+  const owner = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { verified: true },
+  });
+  if (owner?.verified !== "VERIFIED") {
+    throw new AppError("Verify your email address before connecting an ad account.", 403);
+  }
+
   // A connect attempt is a credential-validation call against a third party.
   // Rate limit it so this endpoint can't be used to test stolen keys in bulk.
   const limit = await rateLimit(`connect:${userId}:${clientIp(req)}`, 10, 300);
@@ -162,6 +178,39 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
       userAgent: req.headers.get("user-agent") ?? undefined,
     },
   });
+
+  // Re-mint the session cookie with hasAccessData: true.
+  //
+  // The JWT is issued at sign-in and carries hasAccessData, which middleware
+  // uses to bounce /tools/* to onboarding. Nothing refreshed it after a
+  // successful connection, so the token still said "no ad account" and
+  // "Go to dashboard" silently redirected straight back here — the click
+  // looked dead. The cookie has to be reissued at the moment the fact changes.
+  const owner2 = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true, role: true, verified: true },
+  });
+  if (owner2) {
+    const token = await new SignJWT({
+      name: owner2.name,
+      userId,
+      email: owner2.email,
+      role: owner2.role,
+      emailVerified: owner2.verified,
+      hasAccessData: true,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1d")
+      .sign(JWT_SECRET);
+
+    (await cookies()).set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
+  }
 
   return NextResponse.json(
     {
