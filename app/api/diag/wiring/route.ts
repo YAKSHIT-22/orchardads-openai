@@ -1,0 +1,174 @@
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
+import { adsFetchWithConnection } from "@/lib/openai/client";
+
+/**
+ * TEMPORARY read-only wiring probe.
+ *
+ * Exercises every OpenAI Ads endpoint the product depends on, against the real
+ * connected account, and reports what each one actually returns. Its whole
+ * purpose is to replace the `[U]` guesses in the research docs with observed
+ * fact — `fields[]` already proved that a spec-derived projection can be wrong
+ * in a way that only a live call reveals.
+ *
+ * Constraints, because this runs against a funded production ad account:
+ *   - GET / read-only insights only. Nothing here creates, updates, pauses or
+ *     archives anything.
+ *   - Guarded by DIAG_TOKEN with a constant-time compare.
+ *   - Returns shapes and error text, never the API key.
+ *
+ * DELETE THIS ROUTE once the mappings are corrected.
+ */
+export const dynamic = "force-dynamic";
+export const maxDuration = 120;
+
+function authorised(req: Request): boolean {
+  const expected = process.env.DIAG_TOKEN;
+  if (!expected) return false;
+  const got = req.headers.get("x-diag-token") ?? "";
+  const a = Buffer.from(expected);
+  const b = Buffer.from(got);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+type Probe = {
+  name: string;
+  path: string;
+  ok: boolean;
+  status?: number;
+  error?: string;
+  count?: number;
+  sampleKeys?: string[];
+  sample?: unknown;
+};
+
+export async function GET(req: Request) {
+  if (!authorised(req)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const conn = await prisma.openAiAdsConnection.findFirst({ orderBy: { createdAt: "asc" } });
+  if (!conn) return NextResponse.json({ error: "No connection" }, { status: 400 });
+
+  const results: Probe[] = [];
+
+  async function probe(
+    name: string,
+    path: string,
+    query?: Record<string, unknown>,
+    method: "GET" | "POST" = "GET",
+    body?: unknown
+  ) {
+    try {
+      const res = await adsFetchWithConnection<Record<string, unknown>>(conn!, path, {
+        method,
+        ...(query ? { query: query as never } : {}),
+        ...(body ? { body } : {}),
+      });
+      const data = (res as { data?: unknown[] })?.data;
+      const arr = Array.isArray(data) ? data : Array.isArray(res) ? (res as unknown[]) : null;
+      const first = arr?.[0] ?? (arr ? undefined : res);
+      results.push({
+        name,
+        path,
+        ok: true,
+        count: arr?.length,
+        sampleKeys: first && typeof first === "object" ? Object.keys(first as object).slice(0, 40) : undefined,
+        sample: first,
+      });
+    } catch (err) {
+      results.push({
+        name,
+        path,
+        ok: false,
+        status: (err as { status?: number }).status,
+        error: String((err as { message?: string }).message ?? err).slice(0, 600),
+      });
+    }
+  }
+
+  const today = new Date();
+  const since = new Date(today.getTime() - 13 * 86_400_000).toISOString().slice(0, 10);
+  const until = today.toISOString().slice(0, 10);
+  const tr = JSON.stringify({ type: "date_range", since, until, timezone: conn.timezone || "UTC" });
+
+  // ── Entities ────────────────────────────────────────────────────────────
+  await probe("ad_account", "/ad_account");
+  await probe("campaigns", "/campaigns", { limit: 5, "include[]": ["serving_issues"] });
+  await probe("ad_groups", "/ad_groups", { limit: 5, "include[]": ["serving_issues"] });
+  await probe("ads", "/ads", { limit: 5, "include[]": ["serving_issues"] });
+  await probe("conversion_sources", "/conversions/sources", { limit: 5 });
+  await probe("conversion_event_settings", "/conversions/event_settings", { limit: 5 });
+  await probe("geo_lookup", "/geo_lookup/search", { q: "mumbai", limit: 3 });
+
+  // ── Insights: the projections we actually send ──────────────────────────
+  const campaignFields = [
+    "campaign.id", "campaign.name", "campaign.status",
+    "campaign.budget.lifetime", "campaign.budget.daily",
+    "campaign.impressions", "campaign.clicks", "campaign.spend",
+    "campaign.ctr", "campaign.cpc", "campaign.cpm",
+  ];
+  await probe("insights: campaign totals", "/ad_account/insights", {
+    aggregation_level: "campaign", time_granularity: "none",
+    "time_ranges[]": [tr], "fields[]": campaignFields, limit: 5,
+  });
+  await probe("insights: campaign daily (date key?)", "/ad_account/insights", {
+    aggregation_level: "campaign", time_granularity: "daily",
+    "time_ranges[]": [tr], "fields[]": campaignFields, limit: 5,
+  });
+  await probe("insights: zero_impression_items include", "/ad_account/insights", {
+    aggregation_level: "campaign", time_granularity: "none",
+    "time_ranges[]": [tr], "fields[]": campaignFields,
+    "includes[]": ["zero_impression_items"], limit: 5,
+  });
+  await probe("insights: ad_group level [U]", "/ad_account/insights", {
+    aggregation_level: "ad_group", time_granularity: "none",
+    "time_ranges[]": [tr],
+    "fields[]": ["ad_group.id", "ad_group.name", "ad_group.status",
+      "ad_group.impressions", "ad_group.clicks", "ad_group.spend",
+      "ad_group.ctr", "ad_group.cpc", "ad_group.cpm"],
+    limit: 5,
+  });
+  await probe("insights: ad level [U]", "/ad_account/insights", {
+    aggregation_level: "ad", time_granularity: "none",
+    "time_ranges[]": [tr],
+    "fields[]": ["ad.id", "ad.name", "ad.status",
+      "ad.impressions", "ad.clicks", "ad.spend", "ad.ctr", "ad.cpc", "ad.cpm"],
+    limit: 5,
+  });
+  await probe("insights: country segment", "/ad_account/insights", {
+    aggregation_level: "campaign", time_granularity: "none",
+    "time_ranges[]": [tr], "fields[]": [...campaignFields, "country.name"],
+    "segments[]": ["country"], limit: 5,
+  });
+  await probe("insights: device segment", "/ad_account/insights", {
+    aggregation_level: "campaign", time_granularity: "none",
+    "time_ranges[]": [tr], "fields[]": [...campaignFields, "device.type"],
+    "segments[]": ["device"], limit: 5,
+  });
+
+  // ── Conversions (separate source; counts only, no revenue) ──────────────
+  await probe("conversions insights", "/conversions/insights", undefined, "POST", {
+    aggregation_level: "campaign",
+    time_range: { type: "date_range", since, until, timezone: conn.timezone || "UTC" },
+  });
+
+  return NextResponse.json(
+    {
+      account: {
+        adAccountId: conn.adAccountId,
+        name: conn.adAccountName,
+        currency: conn.currencyCode,
+        timezone: conn.timezone,
+        reviewStatus: conn.reviewStatus,
+        accountStatus: conn.accountStatus,
+      },
+      window: { since, until },
+      passed: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+      results,
+    },
+    { status: 200 }
+  );
+}
