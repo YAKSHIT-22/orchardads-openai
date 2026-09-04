@@ -32,6 +32,7 @@ import {
 } from "@/lib/optimize/budgetProjection";
 import { ToolHeader, StatCard, InsightBanner, SkeletonRows, EmptyRow, ErrorRow } from "@/components/optimize/ui";
 import { InfoHint } from "@/components/ui/info-hint";
+import type { CampaignReportRow } from "@/types/reportsDetails";
 
 /* ── State presentation (status colors ship with icon + label, never alone) ── */
 const STATE_META: Record<PacingState, {
@@ -156,35 +157,37 @@ export default function BudgetPacingPage() {
   const { mutate: analyze, isPending, isError, error } = useMutation({
     mutationFn: async () => {
       if (!adAccountId) throw new Error("No organization selected");
-      const [campRes, reportRes] = await Promise.all([
-        api.post("/campaign/getallcampaigns", { adAccountId, limit: 100, offset: 0 }),
-        api.post("/reports/campaign", {
-          adAccountId,
-          reportRequest: {
-            startTime: ymd(cycle.start), endTime: ymd(new Date()),
-            returnRowTotals: true, returnRecordsWithNoMetrics: false,
-            selector: {
-              orderBy: [{ field: "spendMicros", sortOrder: "DESCENDING" }],
-              pagination: { offset: 0, limit: 1000 },
-            },
-          },
-        }),
-      ]);
+      // One call, not two. This used to post an Apple-shaped `reportRequest`
+      // with a `selector`, then read campaigns out of `allcampaigns_results` and
+      // spend out of `report.data.reportingDataResponse.row` — none of which our
+      // routes accept or return, so the tool projected zero campaigns and zero
+      // spend on every run. The campaign report already carries both the
+      // budgets and the spend, so the second call was never needed.
+      const reportRes = await api.post("/reports/campaign", {
+        adAccountId,
+        days: Math.max(1, cycle.daysElapsed),
+        daily: false,
+        limit: 1000,
+      });
 
-      const campaigns = (campRes.data?.allcampaigns_results?.data || []).map((c: any) => ({
-        id: String(c.id),
-        name: c.name || `Campaign ${c.id}`,
-        dailyBudget: Number(c.dailyBudgetAmount?.amount) || 0,
-        currency: c.dailyBudgetAmount?.currencyCode || orgCurrency,
+      const rows = (reportRes.data?.report?.campaigns ?? []) as CampaignReportRow[];
+
+      const campaigns = rows.map((c) => ({
+        id: String(c.campaignId),
+        name: c.campaignName || String(c.campaignId),
+        // Micros throughout, matching the spend below. A campaign with only a
+        // LIFETIME budget gets 0 here on purpose: a lifetime cap is a runway,
+        // not a monthly pace, and projecting one as if it renewed each month
+        // would be wrong. Those rows fall out as `no_budget`, and Budget Pacing
+        // answers the runway question for them instead.
+        dailyBudget: Number(c.dailyBudgetMicros ?? 0),
+        currency: reportRes.data?.report?.currency || orgCurrency,
         monthlyBudget: null,
       }));
 
       const spendByCampaign = new Map<string, number>();
-      for (const row of reportRes.data?.report?.data?.reportingDataResponse?.row || []) {
-        const id = String(row?.metadata?.campaignId ?? "");
-        if (!id) continue;
-        const spend = Number(row?.total?.metrics?.spendMicros) || 0;
-        spendByCampaign.set(id, (spendByCampaign.get(id) || 0) + spend);
+      for (const c of rows) {
+        spendByCampaign.set(String(c.campaignId), Number(c.performance.spendMicros) || 0);
       }
 
       return projectBudgets(campaigns, spendByCampaign, cycle);

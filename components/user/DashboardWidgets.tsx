@@ -17,7 +17,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { money } from "@/lib/format";
-import type { Campaign } from "@/types/reportsDetails";
+import type { Campaign, AdGroupReportRow } from "@/types/reportsDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -240,36 +240,41 @@ export function DashboardWidgets({
         </Card>
       </div>
 
-      <AdGroupTray campaign={tray} adAccountId={adAccountId} dateRange={dateRange} currency={currency} onClose={() => setTray(null)} />
+      <AdGroupTray campaign={tray} adAccountId={adAccountId} days={days} currency={currency} onClose={() => setTray(null)} />
     </div>
   );
 }
 
 /** Slide-out tray showing a campaign's ad-group breakdown (fetched on demand). */
 function AdGroupTray({
-  campaign, adAccountId, dateRange, currency, onClose,
+  campaign, adAccountId, days, currency, onClose,
 }: {
   campaign: Campaign | null;
   adAccountId: string;
-  dateRange: { startTime: string; endTime: string };
+  /** Window length. The route takes `days`, not an explicit start/end pair. */
+  days: number;
   currency: string;
   onClose: () => void;
 }) {
   const open = !!campaign;
+
+  // This request used to be Apple-shaped: a `reportRequest` with `selector`,
+  // `orderBy`, `returnRowTotals`, read back out of
+  // `report.data.reportingDataResponse.row`. Our route accepts none of that and
+  // returns none of it, so the tray silently rendered an empty list every time
+  // — the params were ignored and the response path was always undefined.
   const { data: rows = [], isLoading, error } = useQuery({
-    queryKey: ["dash-tray-adgroups", adAccountId, campaign?.campaignId, dateRange.startTime, dateRange.endTime],
+    queryKey: ["dash-tray-adgroups", adAccountId, campaign?.campaignId, days],
     queryFn: async () => {
       const res = await api.post("/reports/adgroup", {
-        adAccountId, campaignId: String(campaign!.campaignId),
-        reportRequest: {
-          startTime: dateRange.startTime, endTime: dateRange.endTime,
-          // Include ad groups with no spend in range, otherwise a campaign whose
-          // ad groups haven't accrued spend shows an empty tray.
-          returnRowTotals: true, returnRecordsWithNoMetrics: true,
-          selector: { orderBy: [{ field: "spendMicros", sortOrder: "DESCENDING" }], pagination: { offset: 0, limit: 200 } },
-        },
+        adAccountId,
+        days,
+        daily: false,
+        limit: 200,
       });
-      return (res.data?.report?.data?.reportingDataResponse?.row || []) as any[];
+      const all = (res.data?.report?.adGroups ?? []) as AdGroupReportRow[];
+      // The route reports the whole account; keep this campaign's ad groups.
+      return all.filter((g) => String(g.campaignId) === String(campaign!.campaignId));
     },
     enabled: open,
     staleTime: 60 * 1000,
@@ -310,22 +315,26 @@ function AdGroupTray({
             <Empty icon={Layers} title="No ad groups" sub="This campaign has no ad-group data in this range." />
           ) : (
             <div className="flex flex-col gap-2 pb-6">
-              {rows.map((r, i) => {
-                const m = r?.total?.metrics || {};
-                const agSpend = Number(m.spendMicros) || 0;
-                const inst = Number(m.conversions ?? m.conversions) || 0;
-                const cpa = inst > 0 ? agSpend / inst : null;
+              {rows.map((g) => {
+                const m = g.performance;
                 return (
-                  <div key={i} className="rounded-lg border p-3">
+                  <div key={g.adGroupId} className="rounded-lg border p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium truncate" title={r?.metadata?.adGroupName}>{r?.metadata?.adGroupName || `Ad Group ${r?.metadata?.adGroupId || i + 1}`}</span>
-                      {r?.metadata?.adGroupStatus && <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{r.metadata.adGroupStatus}</Badge>}
+                      <span className="text-sm font-medium truncate" title={g.adGroupName}>
+                        {g.adGroupName || g.adGroupId}
+                      </span>
+                      {g.adGroupStatus && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 capitalize">
+                          {g.adGroupStatus}
+                        </Badge>
+                      )}
                     </div>
                     <div className="grid grid-cols-4 gap-2 mt-2 text-xs">
-                      <div><div className="text-muted-foreground">Spend</div><div className="font-semibold tabular-nums">{money(currency, agSpend)}</div></div>
-                      <div><div className="text-muted-foreground">Clicks</div><div className="font-semibold tabular-nums">{(Number(m.clicks) || 0).toLocaleString()}</div></div>
-                      <div><div className="text-muted-foreground">Conversions</div><div className="font-semibold tabular-nums">{inst.toLocaleString()}</div></div>
-                      <div><div className="text-muted-foreground">CPA</div><div className="font-semibold tabular-nums">{cpa === null ? "—" : money(currency, cpa)}</div></div>
+                      <div><div className="text-muted-foreground">Spend</div><div className="font-semibold tabular-nums">{money(currency, m.spendMicros)}</div></div>
+                      <div><div className="text-muted-foreground">Clicks</div><div className="font-semibold tabular-nums">{m.clicks.toLocaleString()}</div></div>
+                      <div><div className="text-muted-foreground">Conversions</div><div className="font-semibold tabular-nums">{m.conversions.toLocaleString()}</div></div>
+                      {/* Null, not zero: no conversions means CPA does not exist. */}
+                      <div><div className="text-muted-foreground">CPA</div><div className="font-semibold tabular-nums">{m.cpaMicros == null ? "—" : money(currency, m.cpaMicros)}</div></div>
                     </div>
                   </div>
                 );
