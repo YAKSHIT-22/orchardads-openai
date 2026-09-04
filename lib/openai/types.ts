@@ -474,3 +474,48 @@ export type GeoLookupSearchResponse = {
   count: number;
   results: GeoLookupResult[];
 };
+
+// ── Custom audiences ────────────────────────────────────────────────────────
+
+export type CustomAudienceIdentifierType =
+  | "email"
+  | "phone"
+  | "email_sha256"
+  | "phone_number_sha256"
+  | "gaid";
+
+export type CustomAudience = {
+  id: string;
+  name: string;
+  description?: string | null;
+  status?: string;
+  /** Populated asynchronously — absent or 0 right after creation. */
+  size?: number | null;
+  identifier_type?: CustomAudienceIdentifierType;
+  created_at?: number;
+  updated_at?: number;
+};
+
+export type CreateCustomAudienceBody = {
+  name: string;
+  description?: string;
+  /** Omit every file field to create an empty audience (where enabled). */
+  file_id?: string;
+  identifier_type?: CustomAudienceIdentifierType;
+  identifier_resolution?: "auto";
+  filename?: string;
+  mimetype?: string;
+  /** Bytes. The API caps this at 500,000,000. */
+  file_size?: number;
+};
+
+// ── Product feeds ───────────────────────────────────────────────────────────
+
+export type ProductFeed = {
+  id: string;
+  name: string;
+  countries?: string[];
+  status?: string;
+  created_at?: number;
+  updated_at?: number;
+};

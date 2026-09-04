@@ -5,6 +5,8 @@ import {
   BellRing,
   CalendarDays,
   ClipboardCheck,
+  Users,
+  PackageSearch,
   DollarSign,
   Gauge,
   Layers,
@@ -81,6 +83,20 @@ export const menuItems: MenuItem[] = [
     label: "Ads",
     icon: <Tags size={18} />,
     href: "/tools/ads",
+  },
+  {
+    // Both are real API surfaces (custom_audiences, feeds) that Ads Manager
+    // exposes under Tools and we had no equivalent for.
+    label: "Audiences",
+    icon: <Users size={18} />,
+    href: "/tools/audiences",
+    feature: "segments",
+  },
+  {
+    label: "Feeds",
+    icon: <PackageSearch size={18} />,
+    href: "/tools/feeds",
+    feature: "segments",
   },
   {
     label: "Reports",

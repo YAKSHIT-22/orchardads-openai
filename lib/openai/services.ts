@@ -15,6 +15,9 @@ import type {
   EntityStatus,
   GeoLookupResult,
   GeoLookupSearchResponse,
+  CustomAudience,
+  CreateCustomAudienceBody,
+  ProductFeed,
   InsightRow,
   ListEnvelope,
   SpendLimitWindow,
@@ -298,3 +301,77 @@ export const GeoService = {
 // ── Insights (delivery) ─────────────────────────────────────────────────────
 
 export type { InsightRow };
+
+// ── Custom audiences ────────────────────────────────────────────────────────
+
+/**
+ * Audience lists, used as campaign targeting filters (include or exclude).
+ *
+ * Members are uploaded as a file of emails or phone numbers, raw or SHA-256
+ * hashed. Processing is ASYNCHRONOUS: create returns before the audience is
+ * usable, and the operation id is how you find out whether it worked. Anything
+ * that shows an audience as ready the moment it is created will be lying.
+ */
+export const AudienceService = {
+  list: (ctx: Ctx, limit = 100) =>
+    adsFetch<ListEnvelope<CustomAudience>>(ctx.userId, "/custom_audiences", {
+      ...ctx,
+      query: { limit },
+    }),
+
+  get: (ctx: Ctx, id: string) =>
+    adsFetch<CustomAudience>(ctx.userId, `/custom_audiences/${id}`, { ...ctx }),
+
+  create: (ctx: Ctx, body: CreateCustomAudienceBody) =>
+    adsFetch<CustomAudience>(ctx.userId, "/custom_audiences", { ...ctx, method: "POST", body }),
+
+  /** Irreversible in the same way archiving a campaign is — human-only. */
+  archive: (ctx: Ctx, id: string) =>
+    adsFetch<CustomAudience>(ctx.userId, `/custom_audiences/${id}/archive`, {
+      ...ctx,
+      method: "POST",
+    }),
+
+  /**
+   * Upload a member file and get back a file id.
+   *
+   * `purpose` is required and its only documented value is `custom_audience` —
+   * this endpoint is NOT a creative image upload, despite the generic path.
+   */
+  upload: (ctx: Ctx, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("purpose", "custom_audience");
+    return adsFetch<{ id: string }>(ctx.userId, "/uploads", {
+      ...ctx,
+      method: "POST",
+      body: form as unknown as Record<string, unknown>,
+    });
+  },
+};
+
+// ── Product feeds ───────────────────────────────────────────────────────────
+
+/**
+ * Product feeds back `product_ad_template` creatives — the catalogue a product
+ * ad renders from. A campaign in `product_feed` mode needs one.
+ */
+export const FeedService = {
+  list: (ctx: Ctx, limit = 100) =>
+    adsFetch<ListEnvelope<ProductFeed>>(ctx.userId, "/feeds", { ...ctx, query: { limit } }),
+
+  create: (ctx: Ctx, body: { name: string; countries?: string[] }) =>
+    adsFetch<ProductFeed>(ctx.userId, "/feeds", { ...ctx, method: "POST", body }),
+
+  archive: (ctx: Ctx, feedId: string) =>
+    adsFetch<ProductFeed>(ctx.userId, `/feeds/${feedId}/archive`, { ...ctx, method: "POST" }),
+
+  uploads: (ctx: Ctx, limit = 50) =>
+    adsFetch<ListEnvelope<unknown>>(ctx.userId, "/feeds/uploads", { ...ctx, query: { limit } }),
+
+  products: (ctx: Ctx, feedId: string, limit = 100) =>
+    adsFetch<ListEnvelope<unknown>>(ctx.userId, `/feeds/${feedId}/products`, {
+      ...ctx,
+      query: { limit },
+    }),
+};

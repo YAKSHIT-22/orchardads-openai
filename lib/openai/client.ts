@@ -140,11 +140,21 @@ export async function adsFetchWithConnection<T = unknown>(
         method,
         headers: {
           Accept: "application/json",
-          ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+          // FormData sets its own Content-Type WITH the multipart boundary.
+          // Setting it here would produce a boundary-less header and the
+          // upload would be rejected as malformed.
+          ...(body !== undefined && !(body instanceof FormData)
+            ? { "Content-Type": "application/json" }
+            : {}),
           ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
           ...auth,
         },
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body:
+          body === undefined
+            ? undefined
+            : body instanceof FormData
+              ? body
+              : JSON.stringify(body),
         cache: "no-store",
       });
     } catch (networkErr) {
