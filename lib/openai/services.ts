@@ -342,7 +342,8 @@ export const AudienceService = {
     const form = new FormData();
     form.append("file", file);
     form.append("purpose", "custom_audience");
-    return adsFetch<{ id: string }>(ctx.userId, "/uploads", {
+    // UploadBlobResource returns `file_id`, not `id`.
+    return adsFetch<{ file_id: string }>(ctx.userId, "/uploads", {
       ...ctx,
       method: "POST",
       body: form as unknown as Record<string, unknown>,

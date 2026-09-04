@@ -57,7 +57,7 @@ export const POST = withAdsRoute(async ({ userId, req }) => {
     const uploaded = await AudienceService.upload(ctx, file);
     const audience = await AudienceService.create(ctx, {
       name,
-      file_id: uploaded.id,
+      file_id: uploaded.file_id,
       identifier_type: identifierType as never,
       identifier_resolution: "auto",
       filename: file.name,
