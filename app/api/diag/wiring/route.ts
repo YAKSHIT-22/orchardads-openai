@@ -98,7 +98,7 @@ export async function GET(req: Request) {
   await probe("campaigns", "/campaigns", { limit: 5, "include[]": ["serving_issues"] });
   await probe("ad_groups", "/ad_groups", { limit: 5, "include[]": ["serving_issues"] });
   await probe("ads", "/ads", { limit: 5, "include[]": ["serving_issues"] });
-  await probe("conversion_sources", "/conversions/sources", { limit: 5 });
+  await probe("conversion_pixels", "/conversions/pixels");
   await probe("conversion_event_settings", "/conversions/event_settings", { limit: 5 });
   await probe("geo_lookup", "/geo_lookup/search", { q: "mumbai", limit: 3 });
 
@@ -148,10 +148,25 @@ export async function GET(req: Request) {
     "segments[]": ["device"], limit: 5,
   });
 
-  // ── Conversions (separate source; counts only, no revenue) ──────────────
-  await probe("conversions insights", "/conversions/insights", undefined, "POST", {
+  // ── Conversions ─────────────────────────────────────────────────────────
+  // The open question is whether a POST body wants each time range as a JSON
+  // STRING (what query params require, and what the app currently sends) or as
+  // a real object. Getting this wrong means conversions silently read as zero,
+  // which would make every CPA and CVR in the product wrong rather than absent.
+  const rangeObj = { type: "date_range", since, until, timezone: conn.timezone || "UTC" };
+  await probe("conversions: time_ranges as STRING (what we send)", "/conversions/insights", undefined, "POST", {
     aggregation_level: "campaign",
-    time_range: { type: "date_range", since, until, timezone: conn.timezone || "UTC" },
+    time_ranges: [JSON.stringify(rangeObj)],
+    time_granularity: "none",
+    group_by_entity: true,
+    include_zero_rows: true,
+  });
+  await probe("conversions: time_ranges as OBJECT", "/conversions/insights", undefined, "POST", {
+    aggregation_level: "campaign",
+    time_ranges: [rangeObj],
+    time_granularity: "none",
+    group_by_entity: true,
+    include_zero_rows: true,
   });
 
   return NextResponse.json(
