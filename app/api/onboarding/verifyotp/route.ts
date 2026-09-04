@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { verifyRecaptcha } from "@/lib/auth/recaptcha";
-import { clientIp } from "@/lib/rateLimit";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { redis } from "@/lib/redis";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -37,21 +38,37 @@ export async function POST(req: Request) {
     } catch (err) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-    const rateKey = `otp:rate:${userId}`;
+    // Failed guesses live in their own key. Requesting a new code no longer
+    // clears it, so the attempt budget spans the whole verification episode.
+    const failKey = `otp:fails:${userId}`;
     const stored = await redis.get(`otp:${userId}`);
-    const sentCount = await redis.get(rateKey);
+    const fails = Number((await redis.get(failKey)) ?? 0);
+
+    const ipLimit = await rateLimit(`otp-verify:${clientIp(req)}`, 30, 3600);
+    if (!ipLimit.ok) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${Math.ceil(ipLimit.retryAfter / 60)} minute(s).` },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
+      );
+    }
 
     if (!stored) {
       return NextResponse.json({ error: "OTP expired" }, { status: 400 });
     }
-    if (sentCount && Number(sentCount) > 5) {
+    if (fails >= 5) {
       return NextResponse.json(
-        { error: "Too many attempts, Try in an hour" },
+        { error: "Too many incorrect codes. Try again in an hour." },
         { status: 429 }
       );
     }
-    if (stored !== otp) {
-      await redis.incr(rateKey);
+    // Constant-time compare: a 6-digit secret is short enough that an early-exit
+    // string comparison is worth not leaking.
+    const a = Buffer.from(String(stored));
+    const b = Buffer.from(String(otp));
+    const match = a.length === b.length && crypto.timingSafeEqual(a, b);
+    if (!match) {
+      const n = await redis.incr(failKey);
+      if (n === 1) await redis.expire(failKey, 60 * 60);
       return NextResponse.json(
         { error: "Invalid OTP! Please Try Again" },
         { status: 400 }
@@ -59,7 +76,8 @@ export async function POST(req: Request) {
     }
 
     await redis.del(`otp:${userId}`);
-    await redis.del(rateKey);
+    await redis.del(failKey);
+    await redis.del(`otp:sends:${userId}`);
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },

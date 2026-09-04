@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyRecaptcha } from "@/lib/auth/recaptcha";
-import { clientIp } from "@/lib/rateLimit";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -9,6 +9,14 @@ import { generateJWT } from "@/lib/generateJwt";
 export async function POST(request: Request) {
 try {
     const { name, email, password, recaptchaToken } = await request.json();
+
+    const signupLimit = await rateLimit(`signup:${clientIp(request)}`, 10, 3600);
+    if (!signupLimit.ok) {
+      return NextResponse.json(
+        { error: `Too many sign-up attempts. Try again in ${Math.ceil(signupLimit.retryAfter / 60)} minute(s).` },
+        { status: 429, headers: { "Retry-After": String(signupLimit.retryAfter) } }
+      );
+    }
 
     const captcha = await verifyRecaptcha(recaptchaToken, clientIp(request));
     if (!captcha.ok) {

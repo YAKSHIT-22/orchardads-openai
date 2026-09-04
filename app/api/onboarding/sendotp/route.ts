@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { redis } from "@/lib/redis";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 import { sendOtpEmail } from "@/lib/mailer";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
@@ -25,18 +27,41 @@ export async function GET(req: Request) {
     } catch (err) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-    const rateKey = `otp:rate:${userId}`;
-    const sentCount = await redis.get(rateKey);
-    if (sentCount && Number(sentCount) > 5) {
+    // Sends and failed guesses are counted SEPARATELY.
+    //
+    // They used to share one `otp:rate` key that this route reset to 0 on every
+    // send, which defeated both limits at once: a caller could burn five wrong
+    // guesses, request a fresh code to zero the counter, and repeat — so a
+    // six-digit OTP had no effective attempt limit — while the resend cap could
+    // never fire because it was checked and then immediately cleared.
+    const sendKey = `otp:sends:${userId}`;
+    const sends = Number((await redis.get(sendKey)) ?? 0);
+    if (sends >= 5) {
       return NextResponse.json(
-        { error: "Too many attempts, Try in an hour" },
+        { error: "Too many codes requested. Try again in an hour." },
         { status: 429 }
       );
     }
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Also cap per IP, so one host can't cycle accounts to send mail.
+    const ipLimit = await rateLimit(`otp-send:${clientIp(req)}`, 20, 3600);
+    if (!ipLimit.ok) {
+      return NextResponse.json(
+        { error: `Too many requests. Try again in ${Math.ceil(ipLimit.retryAfter / 60)} minute(s).` },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
+      );
+    }
+
+    // crypto.randomInt, not Math.random: this is an authentication factor, and
+    // Math.random is neither uniform nor unpredictable.
+    const otp = String(crypto.randomInt(100000, 1000000));
     await redis.set(`otp:${userId}`, otp, "EX", 60 * 15);
-    await redis.set(rateKey, 0, "EX", 60 * 60);
-    await redis.expire(rateKey, 45 * 60);
+
+    // Count the send, expiring the window an hour out. INCR alone leaves a key
+    // with no TTL, so set the expiry on first use.
+    const n = await redis.incr(sendKey);
+    if (n === 1) await redis.expire(sendKey, 60 * 60);
+
     await sendOtpEmail(email, otp);
     return NextResponse.json({ success: true });
   } catch (err: any) {

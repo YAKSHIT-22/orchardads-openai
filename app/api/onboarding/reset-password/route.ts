@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
@@ -8,6 +9,14 @@ import { redis } from "@/lib/redis";
  * new (hashed) password, and consumes the token so it can't be reused.
  */
 export async function POST(request: Request) {
+  const limit = await rateLimit(`reset-pw:${clientIp(request)}`, 10, 3600);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: `Too many reset attempts. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   try {
     const { token, password } = await request.json();
     if (!token || typeof token !== "string") {

@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 import { sendContactEmail } from "@/lib/mailer";
 
 export async function POST(req: Request) {
+  const limit = await rateLimit(`contact:${clientIp(req)}`, 5, 3600);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: `Too many messages. Try again in ${Math.ceil(limit.retryAfter / 60)} minute(s).` },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   try {
     const body = await req.json();
 
