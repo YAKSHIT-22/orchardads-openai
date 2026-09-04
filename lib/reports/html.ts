@@ -35,8 +35,8 @@ function funnel(w: RenderedWidget): string {
   };
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     ${bar("Impressions", impressions, impressions, "#c4b5fd")}
-    ${bar("Clicks", clicks, impressions, "#8b5cf6")}
-    ${bar("Conversions", conversions, impressions, "#6d28d9")}
+    ${bar("Clicks", clicks, impressions, "#3f3f46")}
+    ${bar("Conversions", conversions, impressions, "#18181b")}
   </table>
   <p style="margin:8px 0 0;font-size:12px;color:${MUTED}">Click-through ${ctr}% · Conversion ${cvr}%</p>`;
 }

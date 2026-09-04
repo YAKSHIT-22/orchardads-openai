@@ -127,7 +127,7 @@ export default function PricingPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] leading-[1.03] max-w-3xl">
             Simple plans that{" "}
-            <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent">scale</span> with you.
+            <span className="italic font-serif bg-gradient-to-br from-primary to-zinc-600 bg-clip-text text-transparent">scale</span> with you.
           </h1>
           <p className="text-muted-foreground max-w-xl text-lg leading-relaxed">
             Every plan is free while we&apos;re in beta — the prices below are what they&apos;ll cost

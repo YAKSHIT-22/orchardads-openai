@@ -65,12 +65,12 @@ export default function AboutPage() {
       <section className="relative w-full overflow-hidden border-b border-border/60">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/3 -top-40 h-[26rem] w-[46rem] rounded-full bg-primary/12 blur-[130px]" />
-          <div className="absolute right-10 top-40 h-56 w-56 rounded-full bg-fuchsia-400/10 blur-[110px]" />
+          <div className="absolute right-10 top-40 h-56 w-56 rounded-full bg-zinc-400/10 blur-[110px]" />
         </div>
         <div className="max-w-4xl mx-auto px-6 sm:px-10 pt-24 pb-20 flex flex-col gap-6">
           <Eyebrow>About OrchardAds</Eyebrow>
           <h1 className="text-4xl sm:text-6xl font-semibold tracking-[-0.03em] leading-[1.03]">
-            We built the dashboard we <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent">always wanted.</span>
+            We built the dashboard we <span className="italic font-serif bg-gradient-to-br from-primary to-zinc-600 bg-clip-text text-transparent">always wanted.</span>
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
             OrchardAds was born out of frustration. Running OpenAI Ads programmatically meant wrangling raw API calls,

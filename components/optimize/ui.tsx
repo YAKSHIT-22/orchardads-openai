@@ -16,12 +16,21 @@ import { cn } from "@/lib/utils";
 import { RotateCcw, TriangleAlert, type LucideIcon } from "lucide-react";
 
 /* ── Chart palette (validated for light surfaces + CVD separation) ─────────── */
+/*
+ * Chart palette.
+ *
+ * `primary` is ink, matching --primary, so a single-series chart reads as part
+ * of the page rather than as a brand statement. The hued entries stay because a
+ * multi-series chart drawn in five greys is unreadable — but they are reserved
+ * for series separation and for meaning (rose = loss, amber = warning), never
+ * for decoration.
+ */
 export const CHART = {
-  primary: "#6d28d9", // matches --primary (violet)
+  primary: "#18181b",
   teal: "#0d9488",
   rose: "#be123c",
   amber: "#b45309",
-  mutedFill: "#ddd6fe", // de-emphasized bars (violet-200)
+  mutedFill: "#e4e4e7", // de-emphasised bars (neutral-200)
   grid: "#f0f0f0",
   axis: "#a1a1aa",
 } as const;

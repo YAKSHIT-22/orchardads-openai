@@ -175,7 +175,7 @@ export function metricTickFormatter(key?: string): (v: number) => string {
 
 /* ── Drafts & starter presets ──────────────────────────────────────────────── */
 
-export const DEFAULT_ACCENT = "#6d28d9";
+export const DEFAULT_ACCENT = "#18181b";
 
 export function blankDraft(): ReportDraft {
   return {

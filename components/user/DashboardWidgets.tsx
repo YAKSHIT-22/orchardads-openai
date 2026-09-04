@@ -210,9 +210,9 @@ export function DashboardWidgets({
             ) : (
               <div className="flex flex-col gap-3">
                 {[
-                  { label: "Impressions", value: funnel.impressions, icon: Eye, color: "bg-violet-400 dark:bg-violet-300", base: funnel.impressions },
-                  { label: "Clicks", value: funnel.clicks, icon: MousePointerClick, color: "bg-violet-600 dark:bg-violet-400", base: funnel.impressions },
-                  { label: "Conversions", value: funnel.conversions, icon: TrendingUp, color: "bg-violet-800 dark:bg-violet-600", base: funnel.impressions },
+                  { label: "Impressions", value: funnel.impressions, icon: Eye, color: "bg-zinc-400 dark:bg-zinc-300", base: funnel.impressions },
+                  { label: "Clicks", value: funnel.clicks, icon: MousePointerClick, color: "bg-zinc-700 dark:bg-zinc-400", base: funnel.impressions },
+                  { label: "Conversions", value: funnel.conversions, icon: TrendingUp, color: "bg-zinc-900 dark:bg-zinc-700", base: funnel.impressions },
                 ].map((s) => (
                   <div key={s.label}>
                     <div className="flex items-center justify-between text-xs mb-1">

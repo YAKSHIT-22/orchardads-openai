@@ -308,7 +308,7 @@ export default function ReportsPage() {
                           </div>
                           <span
                             className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
-                            style={{ backgroundColor: `${t.cover?.accent || "#6d28d9"}1a`, color: t.cover?.accent || "#6d28d9" }}
+                            style={{ backgroundColor: `${t.cover?.accent || "#18181b"}1a`, color: t.cover?.accent || "#18181b" }}
                           >
                             <FileText className="w-4 h-4" />
                           </span>

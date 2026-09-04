@@ -281,9 +281,9 @@ export default function Dashboard() {
 
         {/* Optimize quick links */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-6">
-          <QuickLink href="/tools/audits" icon={ClipboardCheck} title="Orchard Inspector" desc="Find serving blocks, rejected ads and wasted spend." color="bg-violet-500" />
+          <QuickLink href="/tools/audits" icon={ClipboardCheck} title="Orchard Inspector" desc="Find serving blocks, rejected ads and wasted spend." color="bg-zinc-600" />
           <QuickLink href="/tools/alerts" icon={Gauge} title="Orchard Watch" desc="Monitor metrics & budgets, get alerted or auto-pause." color="bg-rose-500" />
-          <QuickLink href="/tools/campaign/builder" icon={Sparkles} title="New Campaign" desc="Build a campaign in one guided flow." color="bg-indigo-500" />
+          <QuickLink href="/tools/campaign/builder" icon={Sparkles} title="New Campaign" desc="Build a campaign in one guided flow." color="bg-zinc-600" />
         </div>
       </div>
     </div>

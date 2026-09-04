@@ -72,7 +72,7 @@ export default function ContactPage() {
         <div className="max-w-4xl mx-auto px-6 sm:px-10 pt-24 pb-16 flex flex-col gap-5">
           <Eyebrow>Contact</Eyebrow>
           <h1 className="text-4xl sm:text-6xl font-semibold tracking-[-0.03em] leading-[1.03]">
-            Let&apos;s <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent">talk.</span>
+            Let&apos;s <span className="italic font-serif bg-gradient-to-br from-primary to-zinc-600 bg-clip-text text-transparent">talk.</span>
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
             Have a question, found a bug, or want to partner with us? Drop us a note — we read every message.

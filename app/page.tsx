@@ -45,7 +45,7 @@ export default function Home() {
       <section className="relative w-full overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 -translate-x-1/2 -top-40 h-[30rem] w-[60rem] rounded-full bg-primary/15 blur-[130px]" />
-          <div className="absolute right-10 top-52 h-64 w-64 rounded-full bg-fuchsia-400/10 blur-[110px]" />
+          <div className="absolute right-10 top-52 h-64 w-64 rounded-full bg-zinc-400/10 blur-[110px]" />
         </div>
 
         <div className="max-w-6xl mx-auto px-6 sm:px-10 pt-20 pb-10 flex flex-col items-center text-center gap-7">
@@ -57,7 +57,7 @@ export default function Home() {
           <h1 className="text-[2.7rem] sm:text-6xl lg:text-7xl font-semibold tracking-[-0.03em] leading-[1.02] max-w-4xl">
             OpenAI Ads,
             <br className="hidden sm:block" />{" "}
-            <span className="italic font-serif bg-gradient-to-br from-primary to-fuchsia-500 bg-clip-text text-transparent pr-1">finally</span>{" "}
+            <span className="italic font-serif bg-gradient-to-br from-primary to-zinc-600 bg-clip-text text-transparent pr-1">finally</span>{" "}
             on autopilot.
           </h1>
 

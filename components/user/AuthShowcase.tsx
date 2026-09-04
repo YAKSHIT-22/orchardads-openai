@@ -12,9 +12,9 @@ export function AuthShowcase() {
     <div className="relative w-full h-full overflow-hidden rounded-2xl bg-[#160c2e] text-white flex flex-col justify-between p-8 lg:p-10">
       {/* glow orbs */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-violet-500/40 blur-[110px]" />
-        <div className="absolute bottom-0 -left-20 h-72 w-72 rounded-full bg-fuchsia-500/30 blur-[120px]" />
-        <div className="absolute top-1/3 left-1/2 h-40 w-40 rounded-full bg-indigo-400/20 blur-[90px]" />
+        <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-zinc-600/40 blur-[110px]" />
+        <div className="absolute bottom-0 -left-20 h-72 w-72 rounded-full bg-zinc-600/30 blur-[120px]" />
+        <div className="absolute top-1/3 left-1/2 h-40 w-40 rounded-full bg-zinc-400/20 blur-[90px]" />
         {/* subtle grid */}
         <svg className="absolute inset-0 h-full w-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -28,7 +28,7 @@ export function AuthShowcase() {
 
       {/* brand */}
       <div className="relative z-10 flex items-center gap-2">
-        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-400 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
+        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-zinc-400 to-zinc-600 flex items-center justify-center shadow-lg shadow-zinc-600/30">
           <Sparkles className="h-5 w-5 text-white" />
         </div>
         <span className="text-lg font-semibold tracking-tight">OrchardAds</span>
@@ -45,11 +45,11 @@ export function AuthShowcase() {
               travel planner
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-400 to-fuchsia-500 shrink-0" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-zinc-400 to-zinc-600 shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-semibold truncate">Trip Trek</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wide bg-violet-400/30 text-violet-100 rounded px-1.5 py-0.5">Ad</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-zinc-400/30 text-zinc-100 rounded px-1.5 py-0.5">Ad</span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-white/60">
                   <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> 4.9 · Travel
@@ -85,7 +85,7 @@ export function AuthShowcase() {
       {/* headline + feature chips */}
       <div className="relative z-10">
         <h2 className="text-2xl font-bold leading-tight tracking-tight">
-          Run OpenAI Ads<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-300">like a pro.</span>
+          Run OpenAI Ads<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-300 to-zinc-300">like a pro.</span>
         </h2>
         <p className="mt-2 text-sm text-white/70 max-w-xs">
           Create, optimize and automate campaigns — Waste Blocker, Autopilot rules and live reports in one place.

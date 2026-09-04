@@ -451,12 +451,12 @@ export default function Designer({
                         type="color"
                         aria-label="Accent color"
                         className="h-8 w-10 shrink-0 rounded-md border border-input bg-background p-0.5 cursor-pointer"
-                        value={cover.accent || "#6d28d9"}
+                        value={cover.accent || "#18181b"}
                         onChange={(e) => setCoverField({ accent: e.target.value })}
                       />
                       <Input
                         className="h-8 text-sm font-mono flex-1 min-w-0 w-full"
-                        value={cover.accent || "#6d28d9"}
+                        value={cover.accent || "#18181b"}
                         onChange={(e) => setCoverField({ accent: e.target.value })}
                       />
                     </div>
