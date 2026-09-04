@@ -38,18 +38,23 @@ export function ToolHeader({
   description: string;
   children?: ReactNode;
 }) {
+  // Matches Ads Manager: the title carries the weight, the icon is a quiet
+  // marker rather than a coloured chip, and the primary action sits opposite.
+  // Nine tools share this, so the whole product changes with it.
   return (
     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-          <Icon className="w-[18px] h-[18px]" />
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <Icon className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+          <h1 className="text-xl font-semibold tracking-tight truncate">{title}</h1>
         </div>
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-          <p className="text-sm text-muted-foreground max-w-xl">{description}</p>
-        </div>
+        <p className="text-sm text-muted-foreground max-w-2xl mt-1 leading-relaxed">
+          {description}
+        </p>
       </div>
-      {children && <div className="flex items-center gap-2 self-start shrink-0">{children}</div>}
+      {children && (
+        <div className="flex items-center gap-2 self-start shrink-0">{children}</div>
+      )}
     </div>
   );
 }

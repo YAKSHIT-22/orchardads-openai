@@ -157,10 +157,13 @@ export default function ReportsPage() {
         </ToolHeader>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b overflow-x-auto">
+        {/* Underline tabs, matching Ads Manager: the active one is marked by the
+            foreground colour and rule, not a tinted pill. */}
+        <div className="flex gap-1 border-b overflow-x-auto scrollbar-hidden">
           {TABS.map((t) => (
             <button
               key={t.id}
+              aria-current={tab === t.id ? "page" : undefined}
               onClick={() => {
                 if (t.id === "designer" && !draft) {
                   openDesigner(blankDraft());
@@ -169,9 +172,9 @@ export default function ReportsPage() {
                 setTab(t.id);
               }}
               className={cn(
-                "px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                "px-3 py-2.5 text-sm border-b-2 -mb-px transition-colors whitespace-nowrap",
                 tab === t.id
-                  ? "border-primary text-foreground"
+                  ? "border-foreground text-foreground font-medium"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
