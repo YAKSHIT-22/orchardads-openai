@@ -18,6 +18,8 @@ import type {
   CustomAudience,
   CreateCustomAudienceBody,
   ProductFeed,
+  ProductFeedUpload,
+  ProductFeedSftpAccess,
   InsightRow,
   ListEnvelope,
   SpendLimitWindow,
@@ -335,8 +337,19 @@ export const AudienceService = {
   /**
    * Upload a member file and get back a file id.
    *
-   * `purpose` is required and its only documented value is `custom_audience` —
-   * this endpoint is NOT a creative image upload, despite the generic path.
+   * VERIFIED against the live API, because the generic path invites the wrong
+   * assumption. POST /uploads is audience-only:
+   *
+   *   no purpose               -> 400 "The purpose field is required. Set it to
+   *                                    'custom_audience' for custom audience files."
+   *   purpose=ad_creative      -> 400 "Invalid value. Supported values are:
+   *                                    'custom_audience'."
+   *   an image + custom_audience -> 422 "Custom audience upload must be a CSV
+   *                                    or TXT file."
+   *
+   * So there is NO creative image upload in the Advertiser API. Ad creatives
+   * reference a file id minted elsewhere (Ads Manager), which is why the ad
+   * form asks for one instead of offering an upload.
    */
   upload: (ctx: Ctx, file: File) => {
     const form = new FormData();
@@ -367,12 +380,76 @@ export const FeedService = {
   archive: (ctx: Ctx, feedId: string) =>
     adsFetch<ProductFeed>(ctx.userId, `/feeds/${feedId}/archive`, { ...ctx, method: "POST" }),
 
+  /**
+   * Recent feed deliveries.
+   *
+   * There is NO HTTP endpoint to upload a feed file — the only ingest path is
+   * SFTP. This lists what has arrived that way, which is the only feedback an
+   * advertiser gets that their catalogue actually landed.
+   */
   uploads: (ctx: Ctx, limit = 50) =>
-    adsFetch<ListEnvelope<unknown>>(ctx.userId, "/feeds/uploads", { ...ctx, query: { limit } }),
+    adsFetch<ListEnvelope<ProductFeedUpload>>(ctx.userId, "/feeds/uploads", {
+      ...ctx,
+      query: { limit },
+    }),
 
   products: (ctx: Ctx, feedId: string, limit = 100) =>
     adsFetch<ListEnvelope<unknown>>(ctx.userId, `/feeds/${feedId}/products`, {
       ...ctx,
       query: { limit },
+    }),
+
+  // ── SFTP delivery ────────────────────────────────────────────────────────
+
+  sftp: (ctx: Ctx, feedId: string) =>
+    adsFetch<ProductFeedSftpAccess>(ctx.userId, `/feeds/${feedId}/sftp_access`, { ...ctx }),
+
+  /**
+   * Create or REPLACE the credentials.
+   *
+   * Replacing invalidates whatever the customer's uploader is currently using,
+   * so this is a breaking change to a running integration, not a refresh — the
+   * UI has to say so before it happens.
+   *
+   * A password is returned once, at creation, and never again.
+   */
+  createSftp: (
+    ctx: Ctx,
+    feedId: string,
+    body: { authentication_method: "password" | "ssh_key"; ssh_public_key?: string }
+  ) =>
+    adsFetch<ProductFeedSftpAccess>(ctx.userId, `/feeds/${feedId}/sftp_access`, {
+      ...ctx,
+      method: "POST",
+      body,
+    }),
+
+  activateSftp: (ctx: Ctx, feedId: string) =>
+    adsFetch<ProductFeedSftpAccess>(ctx.userId, `/feeds/${feedId}/sftp_access/activate`, {
+      ...ctx,
+      method: "POST",
+    }),
+
+  pauseSftp: (ctx: Ctx, feedId: string) =>
+    adsFetch<ProductFeedSftpAccess>(ctx.userId, `/feeds/${feedId}/sftp_access/pause`, {
+      ...ctx,
+      method: "POST",
+    }),
+
+  /**
+   * Patch availability and price on individual products.
+   *
+   * The delta path, for the things that change hourly. It is not a way to add
+   * products — the feed file is still the source of the catalogue.
+   */
+  patchProducts: (
+    ctx: Ctx,
+    feedId: string,
+    products: { id: string; variants: Record<string, unknown>[] }[]
+  ) =>
+    adsFetch<unknown>(ctx.userId, `/feeds/${feedId}/products`, {
+      ...ctx,
+      method: "PATCH",
+      body: { products },
     }),
 };

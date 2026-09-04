@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ACCOUNT_LIMITS } from "@/utils/variableConstant";
+import { ACCOUNT_LIMITS, ADS_MANAGER_URL } from "@/utils/variableConstant";
 import { CircleAlert, ImageIcon } from "lucide-react";
 
 export type CreativeDraft = {
@@ -32,6 +32,12 @@ export type CreativeDraft = {
   target_url?: string;
   file_id?: string;
 };
+
+/** Catches a pasted URL or filename before the API rejects it. */
+function creativeFileIdLooksWrong(v?: string): boolean {
+  const s = (v ?? "").trim();
+  return s.length > 0 && !s.startsWith("file_");
+}
 
 /** Live counter that turns red only once the API would actually reject. */
 function Counter({ value, max }: { value: string; max: number }) {
@@ -155,9 +161,28 @@ export function CreativeFields({
           />
           <p className="text-xs text-muted-foreground flex items-start gap-1.5 leading-relaxed">
             <ImageIcon className="w-3.5 h-3.5 shrink-0 mt-[1px]" />
-            The id of a file already uploaded to your OpenAI Ads account. We don&apos;t
-            host images — the ad references the asset by id.
+            <span>
+              There is no image upload in the Advertiser API — we checked, and{" "}
+              <code className="font-mono">POST /uploads</code> accepts only audience CSVs. Upload
+              the image in{" "}
+              <a
+                href={ADS_MANAGER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground"
+              >
+                Ads Manager
+              </a>{" "}
+              and paste the <code className="font-mono">file_…</code> id it gives you. A chat card
+              ad needs one to be created.
+            </span>
           </p>
+          {creativeFileIdLooksWrong(value.file_id) && (
+            <p className="text-xs text-amber-600 leading-relaxed">
+              File ids start with <code className="font-mono">file_</code>. That looks like
+              something else — check you copied the id and not the image URL.
+            </p>
+          )}
         </div>
       )}
     </div>

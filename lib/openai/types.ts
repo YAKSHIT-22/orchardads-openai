@@ -519,3 +519,24 @@ export type ProductFeed = {
   created_at?: number;
   updated_at?: number;
 };
+
+export type ProductFeedUpload = {
+  id: string;
+  filename?: string;
+  status?: string;
+  /** Row counts, when the API reports them. */
+  products_processed?: number | null;
+  errors?: number | null;
+  created_at?: number;
+};
+
+export type ProductFeedSftpAccess = {
+  host?: string;
+  port?: number;
+  username?: string;
+  /** Returned ONCE at creation, never on a subsequent read. */
+  password?: string | null;
+  authentication_method?: "password" | "ssh_key";
+  status?: string;
+  directory?: string | null;
+};
