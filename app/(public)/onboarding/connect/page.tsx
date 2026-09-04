@@ -7,7 +7,7 @@ import InfoSteps from "@/components/user/infoSteps";
 import { CampaignStepper } from "@/components/user/CampaignStepper";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { ADS_MANAGER_SETTINGS_URL, ADS_MANAGER_URL } from "@/utils/variableConstant";
+import { ADS_MANAGER_SETTINGS_URL, ADS_MANAGER_URL, SUPPORT_EMAIL } from "@/utils/variableConstant";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -412,6 +412,16 @@ const OnboardingConnectPage = () => {
                         <p className="text-xs text-destructive flex items-start gap-1.5 leading-relaxed">
                           <CircleAlert className="w-3.5 h-3.5 shrink-0 mt-[1px]" />
                           <span>{serverError}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1.5 pl-5 leading-relaxed">
+                          Still stuck? Email{" "}
+                          <a
+                            href={`mailto:${SUPPORT_EMAIL}?subject=Trouble%20connecting%20my%20OpenAI%20Ads%20account`}
+                            className="text-primary hover:underline"
+                          >
+                            {SUPPORT_EMAIL}
+                          </a>{" "}
+                          — never include the API key itself in an email.
                         </p>
                       </div>
                     )}

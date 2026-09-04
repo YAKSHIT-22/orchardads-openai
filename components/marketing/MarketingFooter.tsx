@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { BetaTag } from "@/components/brand/BetaTag";
+import { SUPPORT_EMAIL } from "@/utils/variableConstant";
 
 const footerLinks = [
   { href: "/autopilot", label: "Autopilot" },
@@ -27,6 +28,7 @@ export default function MarketingFooter() {
             <Link key={l.label} href={l.href} className="hover:text-foreground transition-colors">{l.label}</Link>
           ))}
           <Link href="https://developers.openai.com/ads/api-overview" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">OpenAI Ads Docs</Link>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-foreground transition-colors">Support</a>
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-6 sm:px-10 mt-8 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">

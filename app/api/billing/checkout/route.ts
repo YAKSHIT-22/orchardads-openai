@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAdsRoute, AppError } from "@/lib/openai/client";
 import { createTransaction, paddleConfigured, changeSubscriptionPlan } from "@/lib/billing/paddle";
 import { PURCHASABLE } from "@/lib/billing/plans";
+import { SUPPORT_EMAIL } from "@/utils/variableConstant";
 import type { PlanId } from "@/lib/billing/plans";
 
 /**
@@ -15,7 +16,7 @@ import type { PlanId } from "@/lib/billing/plans";
  */
 export const POST = withAdsRoute(async ({ userId, req }) => {
   if (!paddleConfigured()) {
-    throw new AppError("Payments aren't configured yet. Please contact support.", 503);
+    throw new AppError(`Payments aren't switched on yet. Email ${SUPPORT_EMAIL} and we'll set your plan up manually.`, 503);
   }
 
   const { plan } = (await req.json().catch(() => ({}))) as { plan?: string };

@@ -9,6 +9,15 @@ export const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 // ── Ads Manager links used throughout onboarding and diagnostics ────────────
 
+/**
+ * Support address shown to users and used as the reply-to on outbound mail.
+ *
+ * Env-overridable so a staging deploy can point somewhere harmless, but it has
+ * a real default: an address that only exists in a config file is one nobody
+ * remembers to set, and the fallback would be silence.
+ */
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@orchardads.in";
+
 export const ADS_MANAGER_URL = "https://ads.openai.com";
 export const ADS_MANAGER_SETTINGS_URL = "https://ads.openai.com/settings";
 export const ADS_DOCS_URL = "https://developers.openai.com/ads/api-overview";

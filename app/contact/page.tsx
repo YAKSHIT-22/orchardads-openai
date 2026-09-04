@@ -139,12 +139,12 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <a href="mailto:orchardads.in@gmail.com" className="rounded-3xl border border-border bg-card p-6 flex gap-4 hover:border-primary/40 hover:-translate-y-0.5 transition-all">
+          <a href="mailto:support@orchardads.in" className="rounded-3xl border border-border bg-card p-6 flex gap-4 hover:border-primary/40 hover:-translate-y-0.5 transition-all">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"><Mail className="w-5 h-5" /></div>
             <div>
               <h4 className="font-semibold">Email us</h4>
               <p className="text-sm text-muted-foreground mt-0.5">Prefer email? Reach us directly.</p>
-              <p className="text-sm mt-2 font-medium text-primary">orchardads.in@gmail.com</p>
+              <p className="text-sm mt-2 font-medium text-primary">support@orchardads.in</p>
             </div>
           </a>
 

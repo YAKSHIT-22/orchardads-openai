@@ -36,7 +36,7 @@ const sections: Section[] = [
     title: "4. Account Registration & Security",
     items: [
       "You are responsible for maintaining the confidentiality of your OrchardAds account credentials.",
-      "You must notify us immediately at orchardads.in@gmail.com if you suspect unauthorized access to your account.",
+      "You must notify us immediately at support@orchardads.in if you suspect unauthorized access to your account.",
       "You are responsible for all activities that occur under your account.",
       "You may not share your account with any other person or entity.",
       "OrchardAds reserves the right to suspend or terminate accounts that violate these Terms.",
@@ -91,7 +91,7 @@ const sections: Section[] = [
   {
     id: "termination",
     title: "10. Termination",
-    text: "You may terminate your account at any time by contacting orchardads.in@gmail.com. OrchardAds reserves the right to suspend or terminate your access to the Service at any time, with or without notice, for conduct that violates these Terms or is harmful to other users, OrchardAds, or third parties. Upon termination, your credentials and account data will be purged within 30 days.",
+    text: "You may terminate your account at any time by contacting support@orchardads.in. OrchardAds reserves the right to suspend or terminate your access to the Service at any time, with or without notice, for conduct that violates these Terms or is harmful to other users, OrchardAds, or third parties. Upon termination, your credentials and account data will be purged within 30 days.",
   },
   {
     id: "changes-to-terms",
@@ -106,7 +106,7 @@ const sections: Section[] = [
   {
     id: "contact",
     title: "13. Contact",
-    text: "For any questions about these Terms, please contact us at orchardads.in@gmail.com or visit our Contact page.",
+    text: "For any questions about these Terms, please contact us at support@orchardads.in or visit our Contact page.",
   },
 ];
 
@@ -190,7 +190,7 @@ export default function TermsPage() {
             <p className="text-sm font-semibold text-foreground">Questions about these Terms?</p>
             <p className="text-sm text-muted-foreground">
               Contact us at{" "}
-              <a href="mailto:orchardads.in@gmail.com" className="text-primary hover:underline">orchardads.in@gmail.com</a>
+              <a href="mailto:support@orchardads.in" className="text-primary hover:underline">support@orchardads.in</a>
               {" "}or visit our{" "}
               <Link href="/contact" className="text-primary hover:underline">Contact page</Link>.
             </p>

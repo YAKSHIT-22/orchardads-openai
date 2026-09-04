@@ -87,7 +87,7 @@ const sections = [
     content: [
       {
         subtitle: "Access & Portability",
-        text: "You can request a copy of all personal data we hold about you by contacting orchardads.in@gmail.com",
+        text: "You can request a copy of all personal data we hold about you by contacting support@orchardads.in",
       },
       {
         subtitle: "Deletion",
@@ -135,7 +135,7 @@ const sections = [
     content: [
       {
         subtitle: "",
-        text: "For any privacy-related questions or requests, contact us at orchardads.in@gmail.com or visit our Contact page.",
+        text: "For any privacy-related questions or requests, contact us at support@orchardads.in or visit our Contact page.",
       },
     ],
   },
@@ -217,7 +217,7 @@ export default function PrivacyPage() {
             <p className="text-sm font-semibold text-foreground">Questions about this policy?</p>
             <p className="text-sm text-muted-foreground">
               Contact us at{" "}
-              <a href="mailto:orchardads.in@gmail.com" className="text-primary hover:underline">orchardads.in@gmail.com</a>
+              <a href="mailto:support@orchardads.in" className="text-primary hover:underline">support@orchardads.in</a>
               {" "}or visit our{" "}
               <Link href="/contact" className="text-primary hover:underline">Contact page</Link>.
             </p>
