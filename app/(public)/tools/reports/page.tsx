@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ToolHeader } from "@/components/optimize/ui";
+import { EmptyState } from "@/components/shell/ToolPage";
 import { cn } from "@/lib/utils";
 import Designer from "@/components/reports/Designer";
 import Schedules from "@/components/reports/Schedules";
@@ -159,7 +160,7 @@ export default function ReportsPage() {
         {/* Tabs */}
         {/* Underline tabs, matching Ads Manager: the active one is marked by the
             foreground colour and rule, not a tinted pill. */}
-        <div className="flex gap-1 border-b overflow-x-auto scrollbar-hidden">
+        <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-hidden">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -184,17 +185,13 @@ export default function ReportsPage() {
         </div>
 
         {!adAccountId ? (
-          <Card className="border rounded-xl">
-            <CardContent className="py-16 text-center">
-              <div className="flex flex-col items-center gap-2.5">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <p className="font-medium text-foreground/70">No organization selected</p>
-                <p className="text-sm text-muted-foreground">Connect your OpenAI Ads account to design reports.</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-border bg-card">
+            <EmptyState
+              icon={Building2}
+              title="No organization selected"
+              body="Connect your OpenAI Ads account to design reports."
+            />
+          </div>
         ) : tab === "designer" && draft ? (
           <Designer
             key={designerKey}
@@ -259,7 +256,7 @@ export default function ReportsPage() {
                 <Card className="border rounded-xl">
                   <CardContent className="py-14 text-center">
                     <div className="flex flex-col items-center gap-2.5">
-                      <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
                         <TriangleAlert className="w-5 h-5 text-rose-500" />
                       </div>
                       <p className="font-medium text-foreground/70">Couldn&apos;t load your reports</p>
@@ -274,24 +271,19 @@ export default function ReportsPage() {
                   </CardContent>
                 </Card>
               ) : templates.length === 0 ? (
-                <Card className="border rounded-xl">
-                  <CardContent className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2.5">
-                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <p className="font-medium text-foreground/70">No reports yet</p>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Build your first report from widgets — KPIs, trends, tables and more — then download it as a PDF
-                        or schedule email delivery.
-                      </p>
-                      <Button size="sm" className="gap-1.5 mt-1" onClick={() => openDesigner(blankDraft())}>
+                <div className="rounded-xl border border-border bg-card">
+                  <EmptyState
+                    icon={FileText}
+                    title="No reports yet"
+                    body="Build your first report from widgets — KPIs, trends, tables and more — then download it as a PDF or schedule email delivery."
+                    action={
+                      <Button size="sm" className="gap-1.5" onClick={() => openDesigner(blankDraft())}>
                         <Plus className="w-3.5 h-3.5" />
                         New report
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    }
+                  />
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {templates.map((t) => (
@@ -372,7 +364,7 @@ export default function ReportsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-600"
                             title="Delete"
                             aria-label="Delete report"
                             onClick={() => setDeleteTarget(t)}

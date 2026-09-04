@@ -277,7 +277,7 @@ export default function AutopilotPage() {
                       <TableRow className="bg-muted/40">
                         <TableHead className="px-4 py-2 min-w-[280px]">Strategy</TableHead>
                         <TableHead className="px-3 py-2">
-                          Scope <InfoHint>The level the rules evaluate — campaigns, ad groups, ads, keywords or countries. Fixed once the strategy is saved.</InfoHint>
+                          Scope <InfoHint>The level the rules evaluate — campaigns, ad groups, ads or countries. Fixed once the strategy is saved.</InfoHint>
                         </TableHead>
                         <TableHead className="px-3 py-2">Rules</TableHead>
                         <TableHead className="px-3 py-2 whitespace-nowrap">

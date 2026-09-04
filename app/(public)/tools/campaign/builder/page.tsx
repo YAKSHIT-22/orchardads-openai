@@ -387,7 +387,7 @@ export default function CampaignBuilderPage() {
 
   return (
     <section className="w-full p-4 md:p-6">
-      <div className="max-w-3xl mx-auto flex flex-col gap-6">
+      <div className="flex flex-col gap-6 w-full">
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
@@ -407,7 +407,12 @@ export default function CampaignBuilderPage() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[15rem_1fr] gap-6 items-start">
+        {/* Full width now: the rail is a fixed-width column, the content
+            column takes whatever is left. Individual steps below cap their
+            own measure where the content is a form (nobody wants a 1200px
+            text input), and spend the freed space on something useful next
+            to it — a live draft summary, a wider list — rather than padding. */}
+        <div className="grid lg:grid-cols-[16rem_1fr] gap-6 items-start">
           {/* Structure rail.
               Editing used to open on step 1 with no sign that the campaign
               already had an ad group and an ad — they existed, but nothing on
@@ -499,6 +504,7 @@ export default function CampaignBuilderPage() {
 
         {/* ── Step 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
+          <div className="grid xl:grid-cols-[minmax(0,36rem)_1fr] gap-6 items-start">
           <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
             {campaignQuery.isLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
@@ -583,6 +589,39 @@ export default function CampaignBuilderPage() {
               </>
             )}
           </div>
+
+          {/* Draft summary — the freed-up width from dropping the max-w-3xl
+              cap goes here instead of stretching the fields above. Nothing
+              new to fetch: it just mirrors state that already exists. */}
+          <div className="hidden xl:flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-5 xl:sticky xl:top-4">
+            <h3 className="text-sm font-semibold">Draft summary</h3>
+            <dl className="flex flex-col gap-3 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Name</dt>
+                <dd className="truncate">{c.name.trim() || "Untitled campaign"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Status</dt>
+                <dd className="capitalize">{c.status}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Bidding</dt>
+                <dd className="capitalize">{c.bidding_type}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Lifetime budget</dt>
+                <dd>{c.lifetime ? `${currencySymbol(accountCurrency)}${c.lifetime}` : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Daily cap</dt>
+                <dd>{c.daily ? `${currencySymbol(accountCurrency)}${c.daily}` : "—"}</dd>
+              </div>
+            </dl>
+            <p className="text-xs text-muted-foreground leading-relaxed pt-3 border-t border-border">
+              Updates as you type. Nothing is saved until you {campaignId ? "save" : "create"} below.
+            </p>
+          </div>
+          </div>
         )}
 
         {/* ── Step 2 ─────────────────────────────────────────────────────── */}
@@ -595,93 +634,103 @@ export default function CampaignBuilderPage() {
               </div>
             )}
 
-            {groups.length > 0 && (
-              <div className="rounded-xl border border-border bg-card divide-y divide-border">
-                {groups.map((ag) => (
-                  <div key={ag.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{ag.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {ag.status} · max bid ${fromMicros(ag.bidding_config?.max_bid_micros) || "—"}
-                      </p>
+            {/* List grows into the freed width (more room per row); the form
+                is a fixed, sane column next to it rather than stretching. */}
+            <div className="grid xl:grid-cols-[1fr_25rem] gap-6 items-start">
+              {groups.length > 0 && (
+                <div className="rounded-xl border border-border bg-card divide-y divide-border">
+                  {groups.map((ag) => (
+                    <div key={ag.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0 flex items-center gap-4">
+                        <p className="text-sm font-medium truncate">{ag.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize shrink-0">{ag.status}</p>
+                        <p className="text-xs text-muted-foreground shrink-0">
+                          Max bid {currencySymbol(accountCurrency)}{fromMicros(ag.bidding_config?.max_bid_micros) || "—"}
+                        </p>
+                        {Array.isArray(ag.context_hints) && ag.context_hints.length > 0 && (
+                          <p className="text-xs text-muted-foreground shrink-0 hidden sm:block">
+                            {ag.context_hints.length} context hint{ag.context_hints.length === 1 ? "" : "s"}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          setEditingGroupId(String(ag.id));
+                          setGroupTouched({ name: false, maxBid: false });
+                          setG({
+                            name: ag.name ?? "",
+                            description: ag.description ?? "",
+                            status: ag.status === "active" ? "active" : "paused",
+                            maxBid: fromMicros(ag.bidding_config?.max_bid_micros),
+                            hints: (ag.context_hints ?? []).join("\n"),
+                          });
+                        }}><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedGroupId(String(ag.id)); setStep(3); }}>
+                          Ads
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button size="sm" variant="ghost" onClick={() => {
-                        setEditingGroupId(String(ag.id));
-                        setGroupTouched({ name: false, maxBid: false });
-                        setG({
-                          name: ag.name ?? "",
-                          description: ag.description ?? "",
-                          status: ag.status === "active" ? "active" : "paused",
-                          maxBid: fromMicros(ag.bidding_config?.max_bid_micros),
-                          hints: (ag.context_hints ?? []).join("\n"),
-                        });
-                      }}><Pencil className="w-3.5 h-3.5" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedGroupId(String(ag.id)); setStep(3); }}>
-                        Ads
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">{editingGroupId ? "Edit ad group" : "Add an ad group"}</h2>
-                {editingGroupId && (
-                  <Button size="sm" variant="ghost" onClick={resetGroup}><X className="w-3.5 h-3.5 mr-1" />Cancel</Button>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="g-name">Name</Label>
-                <Input id="g-name" value={g.name}
-                  aria-invalid={groupTouched.name && g.name.trim().length < ACCOUNT_LIMITS.nameMin}
-                  onChange={(e) => setG({ ...g, name: e.target.value })}
-                  onBlur={() => setGroupTouched((t) => ({ ...t, name: true }))} />
-                <p className="text-xs text-muted-foreground">Internal only — helps you tell ad groups apart later.</p>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="g-bid">Max bid</Label>
-                  <CurrencyInput currency={accountCurrency} id="g-bid" value={g.maxBid}
-                    aria-invalid={groupTouched.maxBid && !g.maxBid}
-                    onChange={(e) => setG({ ...g, maxBid: e.target.value })}
-                    onBlur={() => setGroupTouched((t) => ({ ...t, maxBid: true }))}
-                    placeholder="1.50" />
-                  <p className="text-xs text-muted-foreground">The most you&apos;ll pay per {c.bidding_type === "clicks" ? "click" : c.bidding_type === "impressions" ? "1,000 impressions" : "conversion"}, set by the campaign&apos;s bidding type.</p>
+              <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4 xl:sticky xl:top-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold">{editingGroupId ? "Edit ad group" : "Add an ad group"}</h2>
+                  {editingGroupId && (
+                    <Button size="sm" variant="ghost" onClick={resetGroup}><X className="w-3.5 h-3.5 mr-1" />Cancel</Button>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Status</Label>
-                  <Select value={g.status} onValueChange={(v) => setG({ ...g, status: v as typeof g.status })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="paused">Paused</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="g-name">Name</Label>
+                  <Input id="g-name" value={g.name}
+                    aria-invalid={groupTouched.name && g.name.trim().length < ACCOUNT_LIMITS.nameMin}
+                    onChange={(e) => setG({ ...g, name: e.target.value })}
+                    onBlur={() => setGroupTouched((t) => ({ ...t, name: true }))} />
+                  <p className="text-xs text-muted-foreground">Internal only — helps you tell ad groups apart later.</p>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="g-hints">Context hints <span className="text-muted-foreground font-normal">(optional, one per line)</span></Label>
-                <Textarea id="g-hints" rows={3} value={g.hints}
-                  onChange={(e) => setG({ ...g, hints: e.target.value })}
-                  placeholder={"comparing project management tools for a small team\nlooking for a CRM that works offline"} />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Not keywords — there&apos;s no keyword targeting on this platform. Describe the
-                  situation someone is in when your product is genuinely useful, in plain language.
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <FieldErrors errors={(groupTouched.name || groupTouched.maxBid) ? groupErrors : []} />
-                <Button onClick={() => {
-                  setGroupTouched({ name: true, maxBid: true });
-                  if (groupErrors.length) return;
-                  saveGroup.mutate();
-                }} disabled={saveGroup.isPending}>
-                  {saveGroup.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingGroupId ? "Save ad group" : <><Plus className="w-4 h-4 mr-1" />Add ad group</>}
-                </Button>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="g-bid">Max bid</Label>
+                    <CurrencyInput currency={accountCurrency} id="g-bid" value={g.maxBid}
+                      aria-invalid={groupTouched.maxBid && !g.maxBid}
+                      onChange={(e) => setG({ ...g, maxBid: e.target.value })}
+                      onBlur={() => setGroupTouched((t) => ({ ...t, maxBid: true }))}
+                      placeholder="1.50" />
+                    <p className="text-xs text-muted-foreground">The most you&apos;ll pay per {c.bidding_type === "clicks" ? "click" : c.bidding_type === "impressions" ? "1,000 impressions" : "conversion"}.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label>Status</Label>
+                    <Select value={g.status} onValueChange={(v) => setG({ ...g, status: v as typeof g.status })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="paused">Paused</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="g-hints">Context hints <span className="text-muted-foreground font-normal">(optional, one per line)</span></Label>
+                  <Textarea id="g-hints" rows={3} value={g.hints}
+                    onChange={(e) => setG({ ...g, hints: e.target.value })}
+                    placeholder={"comparing project management tools for a small team\nlooking for a CRM that works offline"} />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Not keywords — there&apos;s no keyword targeting on this platform. Describe the
+                    situation someone is in when your product is genuinely useful, in plain language.
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <FieldErrors errors={(groupTouched.name || groupTouched.maxBid) ? groupErrors : []} />
+                  <Button onClick={() => {
+                    setGroupTouched({ name: true, maxBid: true });
+                    if (groupErrors.length) return;
+                    saveGroup.mutate();
+                  }} disabled={saveGroup.isPending}>
+                    {saveGroup.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {editingGroupId ? "Save ad group" : <><Plus className="w-4 h-4 mr-1" />Add ad group</>}
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -694,7 +743,7 @@ export default function CampaignBuilderPage() {
 
         {/* ── Step 3 ─────────────────────────────────────────────────────── */}
         {step === 3 && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 max-w-5xl">
             <div className="flex flex-col gap-2">
               <Label>Ad group</Label>
               <Select value={selectedGroupId ?? ""} onValueChange={(v) => { setSelectedGroupId(v); resetAd(); }}>
@@ -804,11 +853,11 @@ export default function CampaignBuilderPage() {
 
         {/* ── Review ──────────────────────────────────────────────────────── */}
         {step === 4 && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 max-w-4xl">
             <div className="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
               <h2 className="text-sm font-semibold">Campaign summary</h2>
 
-              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <dl className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
                 <div><dt className="text-muted-foreground text-xs">Campaign</dt><dd>{c.name || "—"}</dd></div>
                 <div><dt className="text-muted-foreground text-xs">Status</dt><dd className="capitalize">{c.status}</dd></div>
                 <div><dt className="text-muted-foreground text-xs">Bidding</dt><dd className="capitalize">{c.bidding_type}</dd></div>

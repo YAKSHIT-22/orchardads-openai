@@ -535,8 +535,9 @@ export default function OrchardWatchPage() {
           )}
         </ToolHeader>
 
-        {/* Tab switch */}
-        <div className="inline-flex self-start rounded-lg border bg-muted/40 p-0.5">
+        {/* Tab switch — underline style, matching the rest of the tool suite
+            (a segmented pill control here was the odd one out). */}
+        <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-hidden">
           {(
             [
               { id: "alerts", label: "Alerts" },
@@ -545,10 +546,13 @@ export default function OrchardWatchPage() {
           ).map((t) => (
             <button
               key={t.id}
+              aria-current={tab === t.id ? "page" : undefined}
               onClick={() => setTab(t.id)}
               className={cn(
-                "px-4 py-1.5 rounded-md text-sm font-medium transition-colors inline-flex items-center gap-1.5",
-                tab === t.id ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                "px-3 py-2.5 text-sm border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5 whitespace-nowrap",
+                tab === t.id
+                  ? "border-foreground text-foreground font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
               {t.label}
