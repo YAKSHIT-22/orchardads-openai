@@ -129,17 +129,40 @@ export async function syncConnection(
     const campaigns = await CampaignService.listAllWith(connection);
     campaignsSynced = await upsertCampaigns(connection, campaigns);
 
-    // 3. Ad groups (account-wide; the endpoint serves all campaigns at once, so
-    //    one walk beats one call per campaign against the rate limit).
-    const adGroups = await AdGroupService.listAllWith(connection);
+    // 3. Ad groups, fetched PER CAMPAIGN.
+    //
+    //    An account-wide walk is one call instead of N and was the original
+    //    design, but the response body carries no campaign_id — verified
+    //    against a live account — so there is nothing to attach a row to and
+    //    every ad group was silently dropped by upsertAdGroups. The parent has
+    //    to come from the REQUEST. `/ad_groups?campaign_id=` is a documented
+    //    filter, so we ask per campaign and tag each result ourselves.
+    const adGroups: (AdGroup & { campaign_id?: string })[] = [];
+    for (const c of campaigns) {
+      if (!c?.id) continue;
+      const forCampaign = await AdGroupService.listAllWith(connection, c.id);
+      for (const g of forCampaign) adGroups.push({ ...g, campaign_id: c.id });
+    }
     adGroupsSynced = await upsertAdGroups(connection, adGroups);
 
-    // 4. Ads.
-    const ads = await AdService.listAllWith(connection);
+    // 4. Ads, per ad group, for exactly the same reason: an ad carries no
+    //    ad_group_id either.
+    const ads: (Ad & { ad_group_id?: string })[] = [];
+    for (const g of adGroups) {
+      if (!g?.id) continue;
+      const forGroup = await AdService.listAllWith(connection, g.id);
+      for (const a of forGroup) ads.push({ ...a, ad_group_id: g.id });
+    }
     adsSynced = await upsertAds(connection, ads);
 
     // 5. Spend limit windows — `spent_micros` makes pacing exact rather than
     //    estimated, so it is worth its own call.
+    //
+    //    Optional. `/ad_account/spend_limit_windows` is in the OpenAPI spec but
+    //    404s on a live account ("Invalid URL"), so it is evidently gated or
+    //    not yet rolled out. A missing optional endpoint must NOT mark the run
+    //    PARTIAL: if every sync is permanently degraded, the status stops
+    //    meaning anything and a real failure hides inside it.
     try {
       const windows = await SpendLimitService.listWith(connection);
       await redis
@@ -151,7 +174,12 @@ export async function syncConnection(
         )
         .catch(() => {});
     } catch (err) {
-      errors.push(`spend_limits: ${message(err)}`);
+      const status = (err as { status?: number }).status;
+      if (status === 404) {
+        console.info("spend limit windows unavailable on this account (404) — skipping");
+      } else {
+        errors.push(`spend_limits: ${message(err)}`);
+      }
     }
 
     // 6. Insights. Daily grain, because conversions only support daily and the
