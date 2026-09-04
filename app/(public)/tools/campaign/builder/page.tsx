@@ -168,6 +168,7 @@ export default function CampaignBuilderPage() {
     queryKey: ["builder-adgroups", adAccountId, campaignId],
     enabled: Boolean(adAccountId && campaignId),
     queryFn: async () => {
+      const res = await api.post("/adgroups/getall", { adAccountId, campaignId });
       // The route returns the raw ListEnvelope under `adGroups`, i.e.
       // { object, data: [...] } — not an array. Unwrap it, or the list renders
       // empty while the API happily returned rows.
