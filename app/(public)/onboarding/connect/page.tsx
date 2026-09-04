@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 /* ── Validation ─────────────────────────────────────────────────────────────
  * Hard rule: non-empty. Format is a SOFT hint only — OpenAI has not published a
@@ -209,8 +210,9 @@ const OnboardingConnectPage = () => {
   return (
     <section className="w-full min-h-[100dvh] flex bg-background px-4 py-8">
       <div className="w-full max-w-5xl m-auto flex flex-col gap-6">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center gap-2">
           <img src="/assets/logo.svg" className="h-14 sm:h-16 w-auto" alt="OrchardAds logo" />
+          <BetaTag />
         </div>
 
         <div className="text-center">

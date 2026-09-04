@@ -16,6 +16,7 @@ import { useUserStore } from "@/stores/userStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { AuthShowcase } from "@/components/user/AuthShowcase";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 const otpVerify = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
@@ -126,12 +127,13 @@ const Page = () => {
       <div className="w-full h-full flex items-center justify-center p-2 sm:p-4 lg:p-6 md:flex-row flex-col gap-4">
         <div className="md:w-[50%] w-full h-full flex items-start flex-col gap-6 justify-start p-1 sm:p-4">
           <div className="flex items-start justify-start flex-col gap-2 w-full px-4">
-            <div className="w-full h-full flex items-start justify-start">
+            <div className="w-full h-full flex items-start justify-start gap-2">
               <img
                 src="/assets/logo.svg"
                 className="h-20 sm:h-22 lg:h-26 w-auto"
-                alt="logo"
+                alt="OrchardAds"
               />
+              <BetaTag className="mt-1" />
             </div>
 
             {step === 1 && (

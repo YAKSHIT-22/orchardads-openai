@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, TrendingUp, ShieldMinus, Gauge, Star } from "lucide-react";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 /**
  * Premium branded showcase panel for the sign-in / sign-up split layout.
@@ -31,6 +32,7 @@ export function AuthShowcase() {
           <Sparkles className="h-5 w-5 text-white" />
         </div>
         <span className="text-lg font-semibold tracking-tight">OrchardAds</span>
+        <BetaTag />
       </div>
 
       {/* floating mock composition */}

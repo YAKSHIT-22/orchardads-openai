@@ -16,6 +16,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import Link from "next/link";
 import { useUserStore } from "@/stores/userStore";
 import { AuthShowcase } from "@/components/user/AuthShowcase";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -173,12 +174,13 @@ const Page = () => {
       <div className="w-full h-full flex items-center justify-center p-2 sm:p-4 lg:p-6 md:flex-row flex-col gap-4">
         <div className="md:w-[50%] w-full h-full flex items-center flex-col gap-6 justify-center p-1 sm:p-4">
           <div className="flex items-center justify-center flex-col gap-2 w-full px-4">
-            <div className="w-full h-full flex items-start justify-start">
+            <div className="w-full h-full flex items-start justify-start gap-2">
               <img
                 src="/assets/logo.svg"
                 className="h-20 sm:h-22 lg:h-26 w-auto"
-                alt="logo"
+                alt="OrchardAds"
               />
+              <BetaTag className="mt-1" />
             </div>
             <div className="flex items-start w-full justify-start flex-col gap-2">
               <h1 className="text-base xs:text-lg md:text-lg lg:text-xl">

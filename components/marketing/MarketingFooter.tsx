@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 const footerLinks = [
   { href: "/autopilot", label: "Autopilot" },
@@ -15,7 +16,10 @@ export default function MarketingFooter() {
     <footer className="w-full border-t border-border py-10 mt-auto">
       <div className="max-w-6xl mx-auto px-6 sm:px-10 flex flex-col sm:flex-row items-start justify-between gap-6">
         <div className="max-w-xs">
-          <Image src="/assets/logo.svg" alt="OrchardAds" width={100} height={28} className="h-7 w-auto" />
+          <div className="flex items-center gap-2">
+            <Image src="/assets/logo.svg" alt="OrchardAds" width={100} height={28} className="h-7 w-auto" />
+            <BetaTag />
+          </div>
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">Diagnose and optimize OpenAI Ads — built on OpenAI&apos;s official Advertiser API.</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">

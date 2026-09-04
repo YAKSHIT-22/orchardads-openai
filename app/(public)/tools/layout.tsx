@@ -30,6 +30,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useUserStore } from "@/stores/userStore";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -166,11 +167,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   ref={primaryRef}
   className="w-36 bg-background border-r border-border text-foreground flex flex-col gap-2 py-4 px-3 z-20"
 >
-  <img
-    src="/assets/logo.svg"
-    alt="logo"
-    className="mb-4 w-full h-auto"
-  />
+  {/* The rail is only w-36, so the mark gives up the width the badge needs
+      rather than wrapping onto a second line. */}
+  <div className="mb-4 flex items-center gap-1.5">
+    <img src="/assets/logo.svg" alt="OrchardAds" className="min-w-0 flex-1 h-auto" />
+    <BetaTag className="shrink-0" />
+  </div>
   {/* Scrollable so short viewports can still reach every item. */}
   <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hidden flex flex-col gap-2">
     {visibleMenuItems.map((item) => {

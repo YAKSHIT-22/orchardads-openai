@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { BetaTag } from "@/components/brand/BetaTag";
 
 const navLinks = [
   { href: "/#features", label: "Features" },
@@ -16,6 +17,7 @@ export default function MarketingHeader({ active }: { active?: string }) {
       <div className="max-w-6xl mx-auto px-6 sm:px-10 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <Image src="/assets/logo.svg" alt="OrchardAds" width={120} height={32} className="h-8 w-auto" />
+          <BetaTag />
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
           {navLinks.map((l) => (
