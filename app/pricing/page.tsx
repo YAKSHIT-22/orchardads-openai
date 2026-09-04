@@ -25,7 +25,7 @@ const plans: Plan[] = [
   {
     name: "Basic",
     tagline: "One ad account. Find the waste, fix it safely.",
-    price: "$29",
+    price: "$15",
     period: "/mo",
     features: [
       "1 OpenAI Ads account, 2 seats",
@@ -43,7 +43,7 @@ const plans: Plan[] = [
   {
     name: "Pro",
     tagline: "Up to 5 ad accounts, full toolkit and alerting.",
-    price: "$49",
+    price: "$29",
     period: "/mo",
     highlight: true,
     ladder: "Everything in Basic, plus:",
@@ -63,7 +63,7 @@ const plans: Plan[] = [
   {
     name: "Enterprise",
     tagline: "Agencies and multi-brand teams.",
-    price: "$99",
+    price: "$49",
     period: "/mo",
     ladder: "Everything in Pro, plus:",
     features: [

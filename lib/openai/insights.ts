@@ -87,19 +87,44 @@ export type InsightsQuery = {
   after?: string;
 };
 
-/** Default projection: everything the API can actually return, plus identity. */
+/**
+ * Default projection.
+ *
+ * `fields[]` is a STRICT allowlist and a bad entry fails the whole request with
+ * a 400 — it is not ignored. The account-scope endpoint rejected
+ * `metadata.readable_time` and named the only members it accepts:
+ *
+ *   ad_account.budget.daily | ad_account.budget.lifetime | ad_account.id
+ *   ad_account.name | ad_account.url | campaign.budget.daily
+ *   campaign.budget.lifetime | campaign.clicks | campaign.cpc | campaign.cpm
+ *   campaign.ctr | campaign.description | campaign.end_time | campaign.id
+ *   campaign.impressions | campaign.name | campaign.spend | campaign.start_time
+ *   campaign.status | country.name | device.type | metadata.timezone
+ *
+ * Note what is NOT there: no conversions (they come from
+ * `POST /conversions/insights`, as modelled), and no time/date member at all.
+ * The per-bucket timestamp is returned by the API for a time-bucketed request
+ * rather than being something you ask for — so it must not be requested, and
+ * `pickDate` below reads whatever key it arrives under.
+ *
+ * Only the campaign list above is confirmed against the live API. Ad-group and
+ * ad projections keep the same id/name/status shape by analogy and are marked
+ * [U] until a real call proves them; descriptive fields we can get from the
+ * entity cache instead (ad titles, review status) are deliberately NOT
+ * requested here, so an unverified guess cannot break a report.
+ */
 export function defaultFields(level: AggregationLevel): string[] {
   const metrics = ["impressions", "clicks", "spend", "ctr", "cpc", "cpm"];
   const id = `${level}.id`;
   const name =
     level === "ad"
-      ? ["ad.title", "ad.name", "ad.status", "ad.review_status"]
+      ? ["ad.name", "ad.status"]
       : level === "ad_group"
         ? ["ad_group.name", "ad_group.status"]
         : level === "campaign"
           ? ["campaign.name", "campaign.status", "campaign.budget.lifetime", "campaign.budget.daily"]
           : ["ad_account.name"];
-  return [id, ...name, ...metrics.map((m) => `${level}.${m}`), "metadata.readable_time"];
+  return [id, ...name, ...metrics.map((m) => `${level}.${m}`)];
 }
 
 function toQuery(q: InsightsQuery): Record<string, string | number | string[] | undefined> {
@@ -147,15 +172,35 @@ export async function getInsightsWith(
 ): Promise<InsightRow[]> {
   const out: InsightRow[] = [];
   let after: string | undefined = query.after;
+  let q = query;
 
   // Insights caps limit at 2,000; walk pages so a 90-day daily-by-ad pull is
   // complete rather than silently truncated at the first page.
   for (let page = 0; page < 25; page++) {
-    const res: ListEnvelope<InsightRow> = await adsFetchWithConnection<ListEnvelope<InsightRow>>(
-      connection,
-      scopePath(scope),
-      { query: toQuery({ ...query, after }) }
-    );
+    let res: ListEnvelope<InsightRow>;
+    try {
+      res = await adsFetchWithConnection<ListEnvelope<InsightRow>>(
+        connection,
+        scopePath(scope),
+        { query: toQuery({ ...q, after }) }
+      );
+    } catch (err) {
+      // `includes` is an optional enrichment whose accepted values we have not
+      // verified against a live account. A rejected value 400s the ENTIRE
+      // request, which would take the dashboard down rather than degrade it —
+      // so drop the extra and retry once. Everything else still rethrows: a bad
+      // `fields` entry is our bug and should be loud, not silently narrowed.
+      const status = (err as { status?: number }).status;
+      const msg = String((err as { message?: string }).message ?? "");
+      const optional = q.includeZeroImpressions && /include/i.test(msg);
+      if (status === 400 && optional) {
+        q = { ...q, includeZeroImpressions: false };
+        console.warn("Insights: dropping unsupported includes[] and retrying —", msg);
+        page--;
+        continue;
+      }
+      throw err;
+    }
     const batch = res?.data ?? [];
     out.push(...batch);
     if (!res?.has_more || !res?.last_id || batch.length === 0) break;
@@ -320,7 +365,7 @@ export function joinInsights(
   for (const row of delivery) {
     const entityId = String(row[idKey] ?? row.ad_account_id ?? "");
     if (!entityId) continue;
-    const date = normalizeDate(row.readable_time);
+    const date = pickDate(row);
     const k = keyOf(entityId, date);
     const acc = merged.get(k) ?? blank(entityId, date);
     acc.entityName = (row[nameKey] as string) ?? (row.name as string) ?? acc.entityName;
@@ -363,6 +408,20 @@ function blank(entityId: string, date?: string) {
 function num(v: unknown): number {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? 0));
   return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * The bucket timestamp cannot be requested via `fields[]`, so we take whatever
+ * the API labels it. Ordered by how the docs refer to it, falling back to the
+ * generic names a time series could plausibly use. Without this a daily series
+ * would silently collapse into a single undated bucket.
+ */
+function pickDate(row: Record<string, unknown>): string | undefined {
+  for (const k of ["readable_time", "date", "time", "start_time", "timestamp", "bucket"]) {
+    const v = row[k];
+    if (v) return normalizeDate(v);
+  }
+  return undefined;
 }
 
 /** `readable_time` may be a date, a datetime, or a month bucket. Keep the day. */

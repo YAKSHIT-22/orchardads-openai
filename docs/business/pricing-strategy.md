@@ -38,6 +38,13 @@ Two ladders, one product. Region detected at signup, switchable by the customer.
 
 ### Global (USD)
 
+> **As shipped (2026-09-04):** the product sells **Basic $15 / Pro $29 /
+> Enterprise $49** per month, with 1 / 5 / 25 ad accounts. `lib/billing/plans.ts`
+> is the only source of truth — it is what the entitlement checks enforce. The
+> ladder below is the original research that set the *position* (above the
+> connector floor, well below the suite); the names and numbers moved down after
+> it was written, so read it for the reasoning, not the price list.
+
 | Plan | Price | Ad accounts | AI analyses / mo | Automated actions / mo | Seats | For |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Free** | $0 | 1 | 5 | 0 (recommend only) | 1 | Diagnostics + dashboard. Real, permanent, useful. Our main acquisition channel |

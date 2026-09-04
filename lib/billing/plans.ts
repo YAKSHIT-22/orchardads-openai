@@ -164,8 +164,8 @@ export const PLANS: Record<PlanId, Plan> = {
   basic: {
     id: "basic",
     name: "Basic",
-    priceUsdCents: 2900,
-    priceInrPaise: 149900,
+    priceUsdCents: 1500,
+    priceInrPaise: 79900,
     tagline: "One ad account. Find the waste, fix it safely.",
     features: BASIC_FEATURES,
     limits: {
@@ -184,8 +184,8 @@ export const PLANS: Record<PlanId, Plan> = {
   pro: {
     id: "pro",
     name: "Pro",
-    priceUsdCents: 4900,
-    priceInrPaise: 299900,
+    priceUsdCents: 2900,
+    priceInrPaise: 149900,
     tagline: "Up to 5 ad accounts, full optimization toolkit and alerting.",
     features: PRO_FEATURES,
     highlight: true,
@@ -205,8 +205,8 @@ export const PLANS: Record<PlanId, Plan> = {
   enterprise: {
     id: "enterprise",
     name: "Enterprise",
-    priceUsdCents: 9900,
-    priceInrPaise: 599900,
+    priceUsdCents: 4900,
+    priceInrPaise: 249900,
     tagline: "Agencies and multi-brand teams. Autopilot, client sharing, API.",
     features: ENTERPRISE_FEATURES,
     limits: {
