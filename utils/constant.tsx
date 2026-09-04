@@ -46,11 +46,22 @@ export type MenuItem = {
   href?: string;
   feature?: Feature;
   children?: MenuItem[];
+  /**
+   * Section heading this item belongs under.
+   *
+   * Seventeen flat entries in a narrow rail is a list you scan rather than
+   * read. Ads Manager groups its nav (Overview / Campaigns / Tools / Billing /
+   * Settings) and the grouping is what makes it navigable; these sections are
+   * the same idea applied to a bigger toolset. The heading is rendered once,
+   * above the first item that carries it.
+   */
+  section?: string;
 };
 
 export const menuItems: MenuItem[] = [
   {
     label: "Dashboard",
+    section: "Overview",
     icon: <LayoutDashboard size={18} />,
     href: "/tools/dashboard",
   },
@@ -59,6 +70,7 @@ export const menuItems: MenuItem[] = [
     // isn't this running?") across two screens. A rejected ad is itself a
     // serving problem, so they are tabs of one tool now.
     label: "Diagnostics",
+    section: "Diagnose",
     icon: <Stethoscope size={18} />,
     href: "/tools/diagnostics",
     feature: "serving_doctor",
@@ -71,6 +83,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: "Campaigns",
+    section: "Manage",
     icon: <Megaphone size={18} />,
     href: "/tools/campaign",
   },
@@ -88,6 +101,7 @@ export const menuItems: MenuItem[] = [
     // Both are real API surfaces (custom_audiences, feeds) that Ads Manager
     // exposes under Tools and we had no equivalent for.
     label: "Audiences",
+    section: "Targeting",
     icon: <Users size={18} />,
     href: "/tools/audiences",
     feature: "segments",
@@ -100,6 +114,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: "Reports",
+    section: "Report",
     icon: <BarChart2 size={18} />,
     href: "/tools/reports",
     feature: "reports_view",
@@ -112,6 +127,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: "Optimize",
+    section: "Optimize",
     icon: <Sparkles size={18} />,
     children: [
       {
@@ -148,6 +164,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: "Orchard Watch",
+    section: "Automate",
     icon: <BellRing size={18} />,
     href: "/tools/alerts",
     feature: "alerts",

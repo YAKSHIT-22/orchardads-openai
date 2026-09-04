@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Key, Loader2, Lock, LogOut, User, Settings, AlertTriangle } from "lucide-react";
+import { Bell, Key, Loader2, Lock, LogOut, User, Settings, AlertTriangle, ChevronDown, PanelLeft } from "lucide-react";
 import { adsErrorToast } from "@/lib/openai/errorToast";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,9 +35,21 @@ import { BetaTag } from "@/components/brand/BetaTag";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [toolVisible, setToolVisible] = useState(false);
+  /** Icon-only rail, remembered per browser. */
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  useEffect(() => {
+    // localStorage can throw in a private window; a nav preference is never
+    // worth failing a page render over.
+    try {
+      setNavCollapsed(localStorage.getItem("oa:nav-collapsed") === "1");
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("oa:nav-collapsed", navCollapsed ? "1" : "0");
+    } catch {}
+  }, [navCollapsed]);
   const primaryRef = useRef<HTMLElement>(null);
-  const toolsRef = useRef<HTMLElement>(null);
   const router = useRouter();
 
   const { adAccountId, connections, selectedIndex, setConnections, setSelectedIndex } =
@@ -96,51 +108,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (userACL.data) setConnections(userACL.data);
   }, [userACL.data, setConnections]);
 
+  // Escape closes an expanded group. There is no outside-click handler any
+  // more: the group expands INSIDE the sidebar rather than overlaying the page,
+  // so leaving it open costs the reader nothing and closing it on every stray
+  // click was the more annoying behaviour.
   useEffect(() => {
-    const onMouseDown = (e: MouseEvent) => {
-      if (
-        toolVisible &&
-        primaryRef.current &&
-        toolsRef.current &&
-        !primaryRef.current.contains(e.target as Node) &&
-        !toolsRef.current.contains(e.target as Node)
-      ) {
-        setActiveMenu(null);
-        setToolVisible(false);
-      }
-    };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setActiveMenu(null);
-        setToolVisible(false);
-      }
+      if (e.key === "Escape") setActiveMenu(null);
     };
-    document.addEventListener("mousedown", onMouseDown);
     document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [toolVisible]);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
-
+  // Keep the group containing the current page open, so a deep link lands with
+  // its section already expanded rather than the sidebar looking unrelated to
+  // where you are.
   useEffect(() => {
-    if (pathname) {
-      setTimeout(() => {
-      setToolVisible(false)
-      }, 500);
-    }
-   }, [pathname]);
-
-  function handlePrimaryClick(label: string) {
-    if (activeMenu === label) {
-      setActiveMenu(null);
-      setToolVisible(false);
-    } else {
-      setActiveMenu(label);
-      setToolVisible(true);
-    }
-  }
+    const owner = menuItems.find((m) => m.children?.some((c) => c.href === pathname));
+    if (owner) setActiveMenu(owner.label);
+  }, [pathname]);
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -163,115 +149,135 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // collapsing toolbars, which left the bottom of the page hidden under a
     // translucent bar. 100dvh tracks the actually-visible viewport.
     <div className="flex h-dvh w-full overflow-hidden relative">
+      {/*
+        One sidebar, not a rail plus a slide-out panel.
+        The old shape put a w-36 icon rail beside an absolutely-positioned w-64
+        panel: opening a group OVERLAID the page, so you lost sight of the thing
+        you were navigating away from, and seventeen stacked icon-over-label
+        entries at that width were a list to scan rather than read.
+        Ads Manager uses a single sidebar with inline groups and section
+        headings; this is the same, plus a collapse for narrow screens.
+      */}
       <aside
-  ref={primaryRef}
-  className="w-36 bg-background border-r border-border text-foreground flex flex-col gap-2 py-4 px-3 z-20"
->
-  {/* The rail is only w-36, so the mark gives up the width the badge needs
-      rather than wrapping onto a second line. */}
-  <div className="mb-4 flex items-center gap-1.5">
-    <img src="/assets/logo.svg" alt="OrchardAds" className="min-w-0 flex-1 h-auto" />
-    <BetaTag className="shrink-0" />
-  </div>
-  {/* Scrollable so short viewports can still reach every item. */}
-  <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hidden flex flex-col gap-2">
-    {visibleMenuItems.map((item) => {
-      const isActiveSubmenu = item.children?.some(
-        (child) => pathname === child.href
-      );
+        ref={primaryRef}
+        className={cn(
+          "shrink-0 bg-sidebar border-r border-border text-foreground flex flex-col z-20 transition-[width] duration-200",
+          navCollapsed ? "w-[3.75rem]" : "w-56"
+        )}
+      >
+        <div className="flex items-center gap-1.5 px-3 py-4 min-w-0">
+          {navCollapsed ? (
+            <span className="mx-auto text-sm font-semibold">OA</span>
+          ) : (
+            <>
+              <img src="/assets/logo.svg" alt="OrchardAds" className="h-6 w-auto min-w-0" />
+              <BetaTag className="shrink-0" />
+            </>
+          )}
+        </div>
 
-      // A parent is locked only when EVERY child is locked — otherwise the
-      // group still leads somewhere useful.
-      const groupLocked =
-        !!item.children?.length && item.children.every((c) => !has(c.feature));
+        <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hidden flex flex-col gap-0.5 px-2 pb-3">
+          {visibleMenuItems.map((item, i) => {
+            const prevSection = i > 0 ? visibleMenuItems[i - 1].section : undefined;
+            const showHeading = !navCollapsed && item.section && item.section !== prevSection;
 
-      if (item.children && item.children.length > 0) {
-        return (
-          <button
-            key={item.label}
-            onClick={() => (groupLocked ? router.push("/tools/billing") : handlePrimaryClick(item.label))}
-            className={cn(
-              "flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors",
-              (activeMenu === item.label && toolVisible) || isActiveSubmenu
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground"
-            )}
-          >
-            {groupLocked ? <Lock size={18} /> : item.icon}
-            <span className="text-xs text-center leading-tight">{item.label}</span>
-          </button>
-        );
-      } else {
-        const locked = !has(item.feature);
-        return (
-          <Link
-            key={item.label}
-            href={locked ? "/tools/billing" : item.href!}
-            title={locked ? `${item.label} isn't on your plan` : undefined}
-            onClick={() => {
-              setActiveMenu(null);
-              setToolVisible(false);
-            }}
-            className={cn(
-              "flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors",
-              locked && "opacity-50",
-              pathname === item.href
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground"
-            )}
-          >
-            {locked ? <Lock size={18} /> : item.icon}
-            <span className="text-xs text-center leading-tight">{item.label}</span>
-          </Link>
-        );
-      }
-    })}
-  </nav>
-</aside>
+            // A group is locked only when EVERY child is locked — otherwise it
+            // still leads somewhere useful.
+            const groupLocked =
+              !!item.children?.length && item.children.every((c) => !has(c.feature));
+            const locked = item.children?.length ? groupLocked : !has(item.feature);
+            const expanded = activeMenu === item.label;
+            const childActive = item.children?.some((c) => pathname === c.href);
 
-<aside
-  ref={toolsRef}
-  className={cn(
-    "absolute top-0 left-36 h-full w-64 bg-background border-r border-border text-foreground transition-all duration-200 z-10",
-    toolVisible
-      ? "translate-x-0 opacity-100"
-      : "-translate-x-full opacity-0"
-  )}
->
-  <div className="flex flex-col py-4 px-3 h-full">
-    {/* Header with accent left border */}
-    <div className="border-l-4 border-primary pl-3 mb-5">
-      <h3 className="font-semibold text-lg text-foreground">{activeMenu}</h3>
-    </div>
+            const row =
+              "w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors";
+            const on = "bg-accent text-foreground font-medium";
+            const off = "text-muted-foreground hover:bg-accent/60 hover:text-foreground";
 
-    {/* Scrollable tool list — the panel header above stays pinned. */}
-    <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hidden flex flex-col gap-1 pb-2">
-      {menuItems
-        .find((i) => i.label === activeMenu)
-        ?.children?.map((tool) => {
-          const locked = !has(tool.feature);
-          return (
-            <Link
-              key={tool.href}
-              href={locked ? "/tools/billing" : tool.href!}
-              title={locked ? `${tool.label} isn't on your plan` : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-sm",
-                locked && "opacity-50",
-                pathname === tool.href
-                  ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary pl-[10px]"
-                  : "text-muted-foreground"
-              )}
-            >
-              {locked ? <Lock size={16} /> : tool.icon}
-              <span className="flex-1">{tool.label}</span>
-              {locked && <span className="text-[10px] uppercase tracking-wide">Upgrade</span>}
-            </Link>
-          );
-        })}
-    </nav>
-  </div>
-</aside>
+            return (
+              <div key={item.label} className="flex flex-col">
+                {showHeading && (
+                  <div className="px-2.5 pt-4 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {item.section}
+                  </div>
+                )}
+
+                {item.children?.length ? (
+                  <>
+                    <button
+                      onClick={() =>
+                        groupLocked
+                          ? router.push("/tools/billing")
+                          : setActiveMenu(expanded ? null : item.label)
+                      }
+                      aria-expanded={expanded}
+                      title={navCollapsed ? item.label : undefined}
+                      className={cn(row, expanded || childActive ? on : off, locked && "opacity-60")}
+                    >
+                      <span className="shrink-0">{locked ? <Lock size={18} /> : item.icon}</span>
+                      {!navCollapsed && (
+                        <>
+                          <span className="truncate flex-1 text-left">{item.label}</span>
+                          <ChevronDown
+                            size={14}
+                            className={cn("shrink-0 transition-transform", expanded && "rotate-180")}
+                          />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Inline, so the page underneath is never covered. */}
+                    {expanded && !navCollapsed && (
+                      <div className="ml-3 pl-2 border-l border-border flex flex-col gap-0.5 mt-0.5">
+                        {item.children.map((child) => {
+                          const childLocked = !has(child.feature);
+                          return (
+                            <Link
+                              key={child.label}
+                              href={childLocked ? "/tools/billing" : child.href!}
+                              title={childLocked ? `${child.label} isn't on your plan` : undefined}
+                              className={cn(
+                                "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                                pathname === child.href ? on : off,
+                                childLocked && "opacity-60"
+                              )}
+                            >
+                              <span className="shrink-0">
+                                {childLocked ? <Lock size={14} /> : child.icon}
+                              </span>
+                              <span className="truncate">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={locked ? "/tools/billing" : item.href!}
+                    title={navCollapsed ? item.label : locked ? `${item.label} isn't on your plan` : undefined}
+                    onClick={() => setActiveMenu(null)}
+                    className={cn(row, pathname === item.href ? on : off, locked && "opacity-60")}
+                  >
+                    <span className="shrink-0">{locked ? <Lock size={18} /> : item.icon}</span>
+                    {!navCollapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        <button
+          onClick={() => setNavCollapsed((v) => !v)}
+          className="flex items-center gap-2.5 px-4 py-3 border-t border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
+          title={navCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <PanelLeft size={18} className="shrink-0" />
+          {!navCollapsed && <span>Collapse</span>}
+        </button>
+      </aside>
+
       {/* min-h-0 (not h-[100dvh]): the column must size to the flex parent.
           Giving it its own 100dvh height made <main> (flex-1 + h-full) resolve
           to the full viewport height while sitting below the 56px header, so
